@@ -1,0 +1,227 @@
+mod agile;
+mod home_assistant;
+
+use std::path::{Path, PathBuf};
+use std::sync::Arc;
+use std::time::Duration;
+
+use axum::{Json, Router, extract::State, response::Html, routing::get};
+use chrono::{Datelike, Local, Timelike};
+use dotenvy::dotenv;
+use tokio::sync::RwLock;
+use tower_http::services::ServeDir;
+
+use crate::agile::{
+    RollingWindow, build_rolling_window, build_stored_days, fetch_latest_agile_rates,
+    load_stored_day, save_stored_day, stored_day_to_day_slots,
+};
+use crate::home_assistant::{HaConfig, LiveState, fetch_numeric_entity_state, load_ha_config};
+
+type AppError = Box<dyn std::error::Error + Send + Sync>;
+
+#[derive(Debug, Clone, serde::Serialize)]
+struct DashboardState {
+    live: LiveState,
+    agile: RollingWindow,
+}
+
+#[derive(Clone)]
+struct AppState {
+    dashboard: Arc<RwLock<DashboardState>>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+struct FetchMarker {
+    year: i32,
+    month: u32,
+    day: u32,
+    hour: u32,
+}
+
+#[tokio::main]
+async fn main() {
+    dotenv().ok();
+
+    let agile_dir = PathBuf::from("data/agile");
+    let ha_config = load_ha_config().expect("Failed to load Home Assistant config");
+
+    fetch_and_store_latest_agile(&agile_dir)
+        .await
+        .expect("Failed to fetch/store Agile data at startup");
+
+    let dashboard = load_dashboard_state(&agile_dir, &ha_config)
+        .await
+        .expect("Failed to load dashboard state");
+
+    println!(
+        "Loaded dashboard with {} Agile slots",
+        dashboard.agile.slot_count
+    );
+
+    let state = AppState {
+        dashboard: Arc::new(RwLock::new(dashboard)),
+    };
+
+    start_scheduler(state.clone(), agile_dir.clone(), ha_config.clone());
+
+    let app = Router::new()
+        .route("/api/dashboard", get(get_dashboard))
+        .route("/api/agile", get(get_agile))
+        .route("/", get(index))
+        .nest_service("/static", ServeDir::new("static"))
+        .with_state(state);
+
+    let listener = tokio::net::TcpListener::bind("127.0.0.1:3000")
+        .await
+        .expect("Failed to bind server");
+
+    println!("Frontend:      http://127.0.0.1:3000");
+    println!("Dashboard API: http://127.0.0.1:3000/api/dashboard");
+    println!("Agile API:     http://127.0.0.1:3000/api/agile");
+
+    axum::serve(listener, app).await.expect("Server failed");
+}
+
+fn start_scheduler(state: AppState, agile_dir: PathBuf, ha_config: HaConfig) {
+    tokio::spawn(async move {
+        let mut last_run: Option<FetchMarker> = None;
+
+        loop {
+            let now = Local::now();
+            let hour = now.hour();
+            let minute = now.minute();
+
+            let should_run_agile = (hour == 5 || hour == 17) && minute == 0;
+
+            if should_run_agile {
+                let marker = FetchMarker {
+                    year: now.year(),
+                    month: now.month(),
+                    day: now.day(),
+                    hour,
+                };
+
+                let already_ran = last_run.as_ref() == Some(&marker);
+
+                if !already_ran {
+                    println!(
+                        "Scheduled Agile fetch triggered at {:04}-{:02}-{:02} {:02}:{:02}",
+                        marker.year, marker.month, marker.day, hour, minute
+                    );
+
+                    match fetch_and_store_latest_agile(&agile_dir).await {
+                        Ok(()) => {
+                            println!("Scheduled Agile fetch/store completed");
+                            last_run = Some(marker);
+                        }
+                        Err(err) => {
+                            eprintln!("Scheduled Agile fetch failed: {err}");
+                        }
+                    }
+                }
+            }
+
+            match load_dashboard_state(&agile_dir, &ha_config).await {
+                Ok(updated_dashboard) => {
+                    let mut guard = state.dashboard.write().await;
+                    *guard = updated_dashboard;
+                }
+                Err(err) => {
+                    eprintln!("Failed to refresh dashboard state: {err}");
+                }
+            }
+
+            tokio::time::sleep(Duration::from_secs(30)).await;
+        }
+    });
+}
+
+async fn fetch_and_store_latest_agile(agile_dir: &Path) -> Result<(), AppError> {
+    let api = fetch_latest_agile_rates().await?;
+    println!("Fetched {} raw Agile slots", api.results.len());
+
+    let days = build_stored_days(&api);
+
+    for day in &days {
+        let path = save_stored_day(agile_dir, day)?;
+        println!("Saved {} slots to {}", day.slots.len(), path.display());
+    }
+
+    Ok(())
+}
+
+async fn load_dashboard_state(
+    agile_dir: &Path,
+    ha_config: &HaConfig,
+) -> Result<DashboardState, AppError> {
+    let agile = load_rolling_window_from_store(agile_dir)?;
+
+    let house_power_w =
+        match fetch_numeric_entity_state(ha_config, "sensor.total_power_being_used").await {
+            Ok(value) => value,
+            Err(err) => {
+                eprintln!("Failed to fetch house power from HA: {err}");
+                None
+            }
+        };
+
+    let solar_generation_w =
+        match fetch_numeric_entity_state(ha_config, "sensor.solar_panel_led_sensor_power").await {
+            Ok(value) => value,
+            Err(err) => {
+                eprintln!("Failed to fetch solar generation from HA: {err}");
+                None
+            }
+        };
+
+    Ok(DashboardState {
+        live: LiveState {
+            house_power_w,
+            solar_generation_w,
+        },
+        agile,
+    })
+}
+
+fn load_rolling_window_from_store(agile_dir: &Path) -> Result<RollingWindow, AppError> {
+    let today = Local::now().date_naive();
+    let tomorrow = today.succ_opt().ok_or("Failed to calculate tomorrow")?;
+
+    let today_day = load_stored_day(agile_dir, today)?;
+    let tomorrow_day = load_stored_day(agile_dir, tomorrow)?;
+
+    let today_slots = today_day
+        .as_ref()
+        .map(stored_day_to_day_slots)
+        .unwrap_or_default();
+
+    let tomorrow_slots = tomorrow_day
+        .as_ref()
+        .map(stored_day_to_day_slots)
+        .unwrap_or_default();
+
+    let now_local = Local::now();
+    let current_slot_index = (now_local.hour() * 2 + now_local.minute() / 30) as u8;
+
+    let rolling_slots = build_rolling_window(&today_slots, &tomorrow_slots, current_slot_index);
+
+    Ok(RollingWindow {
+        current_slot_index,
+        slot_count: rolling_slots.len(),
+        slots: rolling_slots,
+    })
+}
+
+async fn get_dashboard(State(state): State<AppState>) -> Json<DashboardState> {
+    let dashboard = state.dashboard.read().await;
+    Json(dashboard.clone())
+}
+
+async fn get_agile(State(state): State<AppState>) -> Json<RollingWindow> {
+    let dashboard = state.dashboard.read().await;
+    Json(dashboard.agile.clone())
+}
+
+async fn index() -> Html<&'static str> {
+    Html(include_str!("../static/index.html"))
+}

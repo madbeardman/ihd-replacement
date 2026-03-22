@@ -1,0 +1,397 @@
+:root {
+  color-scheme: dark;
+  --bg: #0f1115;
+  --panel: #171a21;
+  --panel-border: #2a2f3a;
+  --panel-soft: rgba(255, 255, 255, 0.02);
+  --panel-soft-border: rgba(255, 255, 255, 0.05);
+  --text: #f3f4f6;
+  --muted: #a1a1aa;
+  --cheap: #22c55e;
+  --normal: #f97316;
+  --expensive: #ef4444;
+  --now-outline: #ffffff;
+
+  --usage-green-bright: #22c55e;
+  --usage-green-soft: #16a34a;
+  --usage-orange: #f97316;
+  --usage-red: #ef4444;
+
+  /* --solar-green-dark: #15803d;
+  --solar-green-mid: #22c55e;
+  --solar-green-bright: #4ade80; */
+
+  --solar-green-dark: #0000ff;
+  --solar-green-mid: #ff0000;
+  --solar-green-bright: #ffa500;
+
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  width: 100%;
+  height: 100%;
+}
+
+body {
+  font-family:
+    Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  overflow: hidden;
+}
+
+/* 800 x 400 fixed dashboard */
+.dashboard {
+  width: 100vw;
+  height: 100vh;
+  padding: 8px;
+  display: grid;
+  grid-template-rows: 36px 1fr;
+  gap: 8px;
+}
+
+/* Header */
+.dashboard-header {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 8px;
+  padding: 0 4px;
+}
+
+.header-time {
+  font-size: 1.25rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.header-status {
+  color: var(--muted);
+  font-size: 0.8rem;
+  text-align: right;
+  white-space: nowrap;
+}
+
+/* Main layout */
+.dashboard-main {
+  min-height: 0;
+  display: grid;
+  grid-template-rows: 190px auto;
+  align-content: start;
+  gap: 8px;
+}
+
+.top-row {
+  min-height: 0;
+  display: grid;
+  grid-template-columns: 2.3fr 2fr 1fr;
+  gap: 8px;
+}
+
+/* Panels */
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--panel-border);
+  border-radius: 14px;
+  padding: 10px 14px;
+  min-width: 0;
+  min-height: 0;
+}
+
+.panel-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.panel-title {
+  margin: 0;
+  font-size: 0.92rem;
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+.panel-subtitle {
+  color: var(--muted);
+  font-size: 0.8rem;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.metric-panel {
+  display: grid;
+  grid-template-rows: auto auto auto 1fr;
+  gap: 4px;
+}
+
+.panel-value {
+  font-size: 1.2rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.panel-value-muted {
+  color: var(--muted);
+}
+
+.panel-subtext {
+  color: var(--muted);
+  font-size: 0.74rem;
+  line-height: 1.1;
+}
+
+.panel-body {
+  min-height: 0;
+  display: grid;
+  grid-template-rows: auto auto 1fr;
+  gap: 4px;
+}
+
+/* Gauges */
+.gauge-wrap {
+  position: relative;
+  min-height: 0;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.gauge-wrap-house,
+.gauge-wrap-solar {
+  height: 100%;
+  padding-top: 2px;
+}
+
+.gauge {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.gauge-house-large,
+.gauge-solar-large {
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  max-height: none;
+}
+
+.gauge path {
+  fill: none;
+  stroke-linecap: round;
+}
+
+.gauge-track {
+  stroke: rgba(255, 255, 255, 0.12);
+  stroke-width: 14;
+}
+
+.gauge-track-inner {
+  stroke-width: 10;
+}
+
+.gauge-fill {
+  stroke-width: 14;
+  stroke: var(--normal);
+  transition:
+    stroke-dasharray 0.3s ease,
+    stroke 0.3s ease;
+}
+
+.gauge-fill-electric {
+  stroke: var(--normal);
+}
+
+.gauge-fill-gas {
+  stroke: #60a5fa;
+  stroke-width: 10;
+}
+
+.gauge-fill-solar {
+  stroke: var(--cheap);
+}
+
+.gauge-unavailable {
+  stroke: rgba(255, 255, 255, 0.2);
+  stroke-dasharray: 4 4;
+}
+
+/* Battery */
+.battery-panel-body {
+  grid-template-rows: auto auto 1fr;
+}
+
+.battery-widget {
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 100%;
+  padding-top: 2px;
+}
+
+.battery-bar {
+  width: 14px;
+  height: 100%;
+  min-height: 56px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 6px;
+  overflow: hidden;
+  border: 1px solid var(--panel-border);
+  display: flex;
+  align-items: end;
+}
+
+.battery-fill {
+  width: 100%;
+  background: var(--cheap);
+  transition: height 0.3s ease;
+}
+
+.battery-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.battery-value {
+  font-size: 0.95rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.battery-caption {
+  color: var(--muted);
+  font-size: 0.72rem;
+  line-height: 1;
+}
+
+/* Agile */
+.agile-panel {
+  display: grid;
+  grid-template-rows: auto auto;
+  gap: 6px;
+  align-content: start;
+}
+
+.agile-chart-wrap {
+  display: grid;
+  grid-template-rows: auto 14px 14px;
+  gap: 4px;
+  align-content: start;
+}
+
+.agile-chart {
+  height: 96px;
+  display: flex;
+  align-items: end;
+  gap: 3px;
+  padding: 18px 10px 4px 10px;
+  background: var(--panel-soft);
+  border: 1px solid var(--panel-soft-border);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.agile-bar {
+  flex: 1 1 0;
+  min-width: 8px;
+  border-radius: 5px 5px 0 0;
+  position: relative;
+  opacity: 0.95;
+  transition:
+    transform 0.15s ease,
+    opacity 0.15s ease;
+}
+
+.agile-bar:hover {
+  transform: translateY(-2px);
+  opacity: 1;
+}
+
+.agile-bar.cheap {
+  background: var(--cheap);
+}
+
+.agile-bar.normal {
+  background: var(--normal);
+}
+
+.agile-bar.expensive {
+  background: var(--expensive);
+}
+
+.agile-bar.now {
+  outline: 2px solid var(--now-outline);
+  outline-offset: 2px;
+}
+
+.agile-bar::after {
+  content: attr(data-price);
+  position: absolute;
+  bottom: calc(100% + 4px);
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.68rem;
+  color: var(--text);
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s ease;
+}
+
+.agile-bar:hover::after,
+.agile-bar.now::after {
+  opacity: 1;
+}
+
+.agile-time-axis {
+  position: relative;
+  height: 14px;
+  color: var(--muted);
+  font-size: 0.7rem;
+}
+
+.agile-time-label {
+  position: absolute;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  line-height: 1;
+}
+
+.agile-axis {
+  display: flex;
+  justify-content: space-between;
+  color: var(--muted);
+  font-size: 0.7rem;
+  padding: 0 2px;
+}
+
+/* Debug hidden in device layout */
+.debug-toggle,
+.debug {
+  display: none;
+}
+
+pre {
+  margin: 0;
+  max-height: 140px;
+  background: #111318;
+  border: 1px solid var(--panel-border);
+  border-radius: 12px;
+  padding: 12px;
+  overflow: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-size: 0.75rem;
+  line-height: 1.35;
+}
