@@ -11,7 +11,6 @@ pub struct HaConfig {
 #[derive(Debug, Deserialize)]
 struct HaStateResponse {
     state: String,
-    entity_id: String,
 }
 
 #[derive(Debug, Clone, serde::Serialize)]
@@ -28,32 +27,6 @@ pub fn load_ha_config() -> Result<HaConfig, AppError> {
 }
 
 pub async fn fetch_numeric_entity_state(
-    config: &HaConfig,
-    entity_id: &str,
-) -> Result<Option<f64>, AppError> {
-    let url = format!(
-        "{}/api/states/{}",
-        config.base_url.trim_end_matches('/'),
-        entity_id
-    );
-
-    let client = reqwest::Client::new();
-
-    let response = client
-        .get(url)
-        .bearer_auth(&config.token)
-        .send()
-        .await?
-        .error_for_status()?
-        .json::<HaStateResponse>()
-        .await?;
-
-    let value = response.state.parse::<f64>().ok();
-
-    Ok(value)
-}
-
-pub async fn fetch_house_power(
     config: &HaConfig,
     entity_id: &str,
 ) -> Result<Option<f64>, AppError> {

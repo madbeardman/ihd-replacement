@@ -17,13 +17,9 @@
   --usage-orange: #f97316;
   --usage-red: #ef4444;
 
-  /* --solar-green-dark: #15803d;
+  --solar-green-dark: #15803d;
   --solar-green-mid: #22c55e;
-  --solar-green-bright: #4ade80; */
-
-  --solar-green-dark: #0000ff;
-  --solar-green-mid: #ff0000;
-  --solar-green-bright: #ffa500;
+  --solar-green-bright: #4ade80;
 
 }
 
@@ -284,22 +280,32 @@ body {
 }
 
 .agile-chart-wrap {
+  min-height: 0;
   display: grid;
-  grid-template-rows: auto 14px 14px;
-  gap: 4px;
-  align-content: start;
+  grid-template-rows: 1fr 14px 14px;
+  gap: 2px; /* was 4px */
 }
 
 .agile-chart {
-  height: 96px;
+  height: 80px;
   display: flex;
   align-items: end;
-  gap: 3px;
-  padding: 18px 10px 4px 10px;
-  background: var(--panel-soft);
-  border: 1px solid var(--panel-soft-border);
-  border-radius: 12px;
-  overflow: hidden;
+  gap: 4px;
+  /* padding: 10px 6px 0 6px; */
+
+  background: transparent;
+  border: none;
+  border-radius: 0;
+}
+
+.agile-chart::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 1px;
+  background: rgba(255,255,255,0.05);
 }
 
 .agile-bar {

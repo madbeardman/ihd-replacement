@@ -11,8 +11,7 @@
 <body>
     <div class="dashboard">
         <header class="dashboard-header">
-            <div class="header-time" id="header-time">15:22</div>
-            <div class="header-status" id="status">Loading…</div>
+            <div class="header-time" id="header-time">00:00</div>
         </header>
 
         <main class="dashboard-main">
@@ -52,7 +51,7 @@
                             <path id="solar-gauge-track" class="gauge-track" d="M 30 150 A 130 130 0 0 1 290 150"
                                 pathLength="100" />
                             <path id="solar-gauge-fill" class="gauge-fill gauge-fill-solar"
-                                d="M 30 150 A 130 130 0 0 1 290 150" pathLength="100" stroke-dasharray="68 100" />
+                                d="M 30 150 A 130 130 0 0 1 290 150" pathLength="100" stroke-dasharray="0 100" />
                         </svg>
                     </div>
                 </article>
@@ -83,16 +82,11 @@
             <section class="panel agile-panel" id="agile-card">
                 <div class="panel-header-row">
                     <h2 class="panel-title">Agile Rates</h2>
-                    <div class="panel-subtitle" id="agile-summary">Waiting for data…</div>
                 </div>
 
                 <div class="agile-chart-wrap">
                     <div class="agile-chart" id="agile-chart"></div>
                     <div class="agile-time-axis" id="agile-time-axis"></div>
-                    <div class="agile-axis">
-                        <span>Now</span>
-                        <span>Next 24h</span>
-                    </div>
                 </div>
 
                 <button class="debug-toggle" id="debug-toggle" type="button">

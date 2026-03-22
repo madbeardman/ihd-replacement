@@ -4,12 +4,7 @@ function formatPrice(value) {
 
 function formatHourLabel(isoString) {
     const date = new Date(isoString);
-    return date
-        .toLocaleTimeString("en-GB", {
-            hour: "numeric",
-            hour12: true,
-        })
-        .toLowerCase();
+    return date.getHours().toString().padStart(2, "0");
 }
 
 function formatClock(now = new Date()) {
@@ -98,14 +93,12 @@ function updateSolarGauge(watts) {
 
 function renderAgileChart(data) {
     const chart = document.getElementById("agile-chart");
-    const summary = document.getElementById("agile-summary");
     const timeAxis = document.getElementById("agile-time-axis");
 
     timeAxis.innerHTML = "";
     chart.innerHTML = "";
 
     if (!data.slots || data.slots.length === 0) {
-        summary.textContent = "No future Agile slots available";
         chart.innerHTML = "<div style='color: var(--muted);'>No data</div>";
         return;
     }
@@ -113,11 +106,9 @@ function renderAgileChart(data) {
     const maxPrice = Math.max(...data.slots.map((slot) => slot.value_inc_vat));
     const minBarHeight = 12;
 
-    summary.textContent = `${data.slot_count} future slots loaded`;
-
     for (const slot of data.slots) {
         const bar = document.createElement("div");
-        const heightPercent = (slot.value_inc_vat / maxPrice) * 85;
+        const heightPercent = (slot.value_inc_vat / maxPrice) * 95;
         const finalHeight = Math.max(minBarHeight, heightPercent);
 
         bar.className = `agile-bar ${slot.band}${slot.is_now ? " now" : ""}`;
@@ -155,11 +146,9 @@ function renderAgileChart(data) {
 }
 
 async function loadDashboard() {
-    const status = document.getElementById("status");
     const output = document.getElementById("output");
 
     try {
-        status.textContent = "Fetching /api/dashboard …";
 
         const response = await fetch("/api/dashboard", {
             headers: { Accept: "application/json" },
@@ -171,7 +160,6 @@ async function loadDashboard() {
 
         const data = await response.json();
 
-        status.textContent = `Loaded ${data.agile.slot_count} slots`;
         output.textContent = JSON.stringify(data, null, 2);
 
         if (typeof data.live?.house_power_w === "number") {
@@ -200,7 +188,6 @@ async function loadDashboard() {
 
         renderAgileChart(data.agile);
     } catch (error) {
-        status.textContent = "Failed to load data";
         output.textContent = String(error);
     }
 }
