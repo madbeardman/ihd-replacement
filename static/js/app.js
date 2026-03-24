@@ -1,3 +1,5 @@
+let dashboardRequestInFlight = false;
+
 function formatPrice(value) {
     return `${value.toFixed(2)}p`;
 }
@@ -21,27 +23,13 @@ function updateClock() {
     clock.textContent = formatClock();
 }
 
-function updateHouseUsageGauge(watts) {
-    const gaugeArc = document.getElementById("usage-gauge-electric");
-
-    if (!gaugeArc || typeof watts !== "number") return;
-
-    const maxWatts = 4000;
-    const clampedWatts = clamp(watts, 0, maxWatts);
-
-    // Non-linear visual scaling so low values are easier to see
-    const linearRatio = clampedWatts / maxWatts;
-    let percentage = Math.sqrt(linearRatio) * 100;
-
-    // Keep a visible minimum when non-zero
-    if (clampedWatts > 0) {
-        percentage = Math.max(percentage, 10);
-    }
-
-    const colour = getHouseUsageColour(clampedWatts);
-
-    gaugeArc.setAttribute("stroke-dasharray", `${percentage} 100`);
-    gaugeArc.style.stroke = colour;
+function formatLastUpdated(now = new Date()) {
+    return now.toLocaleTimeString("en-GB", {
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+        hour12: false,
+    });
 }
 
 function clamp(value, min, max) {
@@ -57,10 +45,33 @@ function getHouseUsageColour(watts) {
 }
 
 function getSolarColor(watts) {
-    if (watts < 200) return "#22c55e";   // green
-    if (watts < 1500) return "#84cc16";  // lime
-    if (watts < 3000) return "#f97316";  // orange
-    return "#ef4444";                    // red
+    if (watts < 200) return "#22c55e";
+    if (watts < 1500) return "#84cc16";
+    if (watts < 3000) return "#f97316";
+    return "#ef4444";
+}
+
+function updateHouseUsageGauge(watts) {
+    const gaugeArc = document.getElementById("usage-gauge-electric");
+
+    if (!gaugeArc || typeof watts !== "number") return;
+
+    const maxWatts = 4000;
+    const clampedWatts = clamp(watts, 0, maxWatts);
+
+    const linearRatio = clampedWatts / maxWatts;
+    let percentage = Math.sqrt(linearRatio) * 100;
+
+    if (clampedWatts > 0) {
+        percentage = Math.max(percentage, 10);
+    } else {
+        percentage = 0;
+    }
+
+    const colour = getHouseUsageColour(clampedWatts);
+
+    gaugeArc.setAttribute("stroke-dasharray", `${percentage} 100`);
+    gaugeArc.style.stroke = colour;
 }
 
 function updateSolarGauge(watts) {
@@ -87,7 +98,7 @@ function updateSolarGauge(watts) {
     gaugeArc.setAttribute("stroke-dasharray", `${percentage} 100`);
     gaugeArc.style.stroke = colour;
 
-    // Track always stays grey
+    // Track stays grey via CSS
     gaugeTrack.style.stroke = "";
 }
 
@@ -95,10 +106,12 @@ function renderAgileChart(data) {
     const chart = document.getElementById("agile-chart");
     const timeAxis = document.getElementById("agile-time-axis");
 
+    if (!chart || !timeAxis) return;
+
     timeAxis.innerHTML = "";
     chart.innerHTML = "";
 
-    if (!data.slots || data.slots.length === 0) {
+    if (!data?.slots || data.slots.length === 0) {
         chart.innerHTML = "<div style='color: var(--muted);'>No data</div>";
         return;
     }
@@ -146,12 +159,15 @@ function renderAgileChart(data) {
 }
 
 async function loadDashboard() {
+    if (dashboardRequestInFlight) return;
+    dashboardRequestInFlight = true;
+
     const output = document.getElementById("output");
 
     try {
-
         const response = await fetch("/api/dashboard", {
             headers: { Accept: "application/json" },
+            cache: "no-store",
         });
 
         if (!response.ok) {
@@ -160,7 +176,14 @@ async function loadDashboard() {
 
         const data = await response.json();
 
-        output.textContent = JSON.stringify(data, null, 2);
+        const updatedEl = document.getElementById("last-updated");
+        if (updatedEl) {
+            updatedEl.textContent = `Polled ${formatLastUpdated()}`;
+        }
+
+        if (output) {
+            output.textContent = JSON.stringify(data, null, 2);
+        }
 
         if (typeof data.live?.house_power_w === "number") {
             const power = Math.round(data.live.house_power_w);
@@ -169,6 +192,11 @@ async function loadDashboard() {
             if (valueEl) valueEl.textContent = `${power}W`;
 
             updateHouseUsageGauge(power);
+        } else {
+            const valueEl = document.querySelector("#usage-panel .panel-value");
+            if (valueEl) valueEl.textContent = "--";
+
+            updateHouseUsageGauge(0);
         }
 
         if (typeof data.live?.solar_generation_w === "number") {
@@ -183,22 +211,36 @@ async function loadDashboard() {
 
             updateSolarGauge(solar);
         } else {
+            const valueEl = document.querySelector("#solar-panel .panel-value");
+            if (valueEl) valueEl.textContent = "--";
+
             updateSolarGauge(0);
         }
 
         renderAgileChart(data.agile);
+
     } catch (error) {
+        const updatedEl = document.getElementById("last-updated");
+        if (updatedEl) {
+            updatedEl.textContent = "Update failed";
+        }
+
         output.textContent = String(error);
+    } finally {
+        dashboardRequestInFlight = false;
     }
 }
 
 function setupDebugToggle() {
     const debugToggle = document.getElementById("debug-toggle");
+    if (!debugToggle) return;
 
     debugToggle.addEventListener("click", () => {
         const debug = document.getElementById("debug");
         const button = document.getElementById("debug-toggle");
-        const isHidden = debug.hasAttribute("hidden");
+        const isHidden = debug?.hasAttribute("hidden");
+
+        if (!debug || !button) return;
 
         if (isHidden) {
             debug.removeAttribute("hidden");
@@ -216,7 +258,7 @@ function init() {
     loadDashboard();
 
     setInterval(updateClock, 1000);
-    setInterval(loadDashboard, 60000);
+    setInterval(loadDashboard, 15000);
 }
 
 init();

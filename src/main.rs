@@ -62,6 +62,7 @@ async fn main() {
         dashboard: Arc::new(RwLock::new(dashboard)),
     };
 
+    start_home_assistant_polling(state.clone(), ha_config.clone());
     start_scheduler(state.clone(), agile_dir.clone(), ha_config.clone());
 
     let app = Router::new()
@@ -210,6 +211,54 @@ fn load_rolling_window_from_store(agile_dir: &Path) -> Result<RollingWindow, App
         slot_count: rolling_slots.len(),
         slots: rolling_slots,
     })
+}
+
+fn start_home_assistant_polling(state: AppState, ha_config: HaConfig) {
+    tokio::spawn(async move {
+        loop {
+            let now = chrono::Local::now().format("%H:%M:%S");
+
+            let house_power =
+                fetch_numeric_entity_state(&ha_config, "sensor.total_power_being_used").await;
+
+            let solar_power =
+                fetch_numeric_entity_state(&ha_config, "sensor.solar_panel_led_sensor_power").await;
+
+            let house_value = match house_power {
+                Ok(value) => value,
+                Err(err) => {
+                    eprintln!("[{now}] HA house usage fetch failed: {err}");
+                    None
+                }
+            };
+
+            let solar_value = match solar_power {
+                Ok(value) => value,
+                Err(err) => {
+                    eprintln!("[{now}] HA solar generation fetch failed: {err}");
+                    None
+                }
+            };
+
+            {
+                let mut dashboard = state.dashboard.write().await;
+                dashboard.live.house_power_w = house_value;
+                dashboard.live.solar_generation_w = solar_value;
+            }
+
+            let house_text = house_value
+                .map(|v| format!("{v:.2}W"))
+                .unwrap_or_else(|| "unavailable".to_string());
+
+            let solar_text = solar_value
+                .map(|v| format!("{v:.2}W"))
+                .unwrap_or_else(|| "unavailable".to_string());
+
+            println!("[{now}] HA poll | house: {house_text} | solar: {solar_text}");
+
+            tokio::time::sleep(Duration::from_secs(15)).await;
+        }
+    });
 }
 
 async fn get_dashboard(State(state): State<AppState>) -> Json<DashboardState> {
