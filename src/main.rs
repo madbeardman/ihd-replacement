@@ -15,7 +15,9 @@ use crate::agile::{
     RollingWindow, build_rolling_window, build_stored_days, fetch_latest_agile_rates,
     load_stored_day, save_stored_day, stored_day_to_day_slots,
 };
-use crate::home_assistant::{HaConfig, LiveState, fetch_numeric_entity_state, load_ha_config};
+use crate::home_assistant::{
+    HaConfig, LiveState, extract_live_state, fetch_all_states, load_ha_config,
+};
 
 type AppError = Box<dyn std::error::Error + Send + Sync>;
 
@@ -23,6 +25,7 @@ type AppError = Box<dyn std::error::Error + Send + Sync>;
 struct DashboardState {
     live: LiveState,
     agile: RollingWindow,
+    appliances: ApplianceRecommendations,
 }
 
 #[derive(Clone)]
@@ -36,6 +39,22 @@ struct FetchMarker {
     month: u32,
     day: u32,
     hour: u32,
+}
+
+#[derive(Debug, Clone, serde::Serialize)]
+struct ApplianceRecommendation {
+    name: String,
+    power_w: Option<f64>,
+    running: bool,
+    best_start: Option<String>,
+    display: String,
+}
+
+#[derive(Debug, Clone, serde::Serialize)]
+struct ApplianceRecommendations {
+    dishwasher: ApplianceRecommendation,
+    washing_machine: ApplianceRecommendation,
+    tumble_dryer: ApplianceRecommendation,
 }
 
 #[tokio::main]
@@ -157,30 +176,26 @@ async fn load_dashboard_state(
 ) -> Result<DashboardState, AppError> {
     let agile = load_rolling_window_from_store(agile_dir)?;
 
-    let house_power_w =
-        match fetch_numeric_entity_state(ha_config, "sensor.total_power_being_used").await {
-            Ok(value) => value,
-            Err(err) => {
-                eprintln!("Failed to fetch house power from HA: {err}");
-                None
+    let live = match fetch_all_states(ha_config).await {
+        Ok(states) => extract_live_state(&states),
+        Err(err) => {
+            eprintln!("Failed to fetch live HA state: {err}");
+            LiveState {
+                house_power_w: None,
+                solar_generation_w: None,
+                dishwasher_power_w: None,
+                washing_machine_power_w: None,
+                tumble_dryer_power_w: None,
             }
-        };
+        }
+    };
 
-    let solar_generation_w =
-        match fetch_numeric_entity_state(ha_config, "sensor.solar_panel_led_sensor_power").await {
-            Ok(value) => value,
-            Err(err) => {
-                eprintln!("Failed to fetch solar generation from HA: {err}");
-                None
-            }
-        };
+    let appliances = build_appliance_recommendations(&live, &agile);
 
     Ok(DashboardState {
-        live: LiveState {
-            house_power_w,
-            solar_generation_w,
-        },
+        live,
         agile,
+        appliances,
     })
 }
 
@@ -213,48 +228,138 @@ fn load_rolling_window_from_store(agile_dir: &Path) -> Result<RollingWindow, App
     })
 }
 
+fn find_best_start_time(
+    slots: &[crate::agile::RollingSlot],
+    required_slots: usize,
+) -> Option<String> {
+    if slots.len() < required_slots || required_slots == 0 {
+        return None;
+    }
+
+    let mut best_total = f64::MAX;
+    let mut best_start = None;
+
+    for window_start in 0..=(slots.len() - required_slots) {
+        let window = &slots[window_start..window_start + required_slots];
+        let total: f64 = window.iter().map(|slot| slot.value_inc_vat).sum();
+
+        if total < best_total {
+            best_total = total;
+            best_start = window.first().map(|slot| slot.valid_from);
+        }
+    }
+
+    best_start.map(|utc_time| utc_time.with_timezone(&Local).format("%H:%M").to_string())
+}
+
+fn build_appliance_recommendation(
+    name: &str,
+    power_w: Option<f64>,
+    required_slots: usize,
+    rolling_slots: &[crate::agile::RollingSlot],
+) -> ApplianceRecommendation {
+    let running = crate::home_assistant::is_appliance_running(power_w);
+    let best_start = if running {
+        None
+    } else {
+        find_best_start_time(rolling_slots, required_slots)
+    };
+
+    let display = if running {
+        "ON".to_string()
+    } else {
+        best_start.clone().unwrap_or_else(|| "--".to_string())
+    };
+
+    ApplianceRecommendation {
+        name: name.to_string(),
+        power_w,
+        running,
+        best_start,
+        display,
+    }
+}
+
+fn build_appliance_recommendations(
+    live: &LiveState,
+    agile: &RollingWindow,
+) -> ApplianceRecommendations {
+    ApplianceRecommendations {
+        dishwasher: build_appliance_recommendation(
+            "Dishwasher",
+            live.dishwasher_power_w,
+            8,
+            &agile.slots,
+        ),
+        washing_machine: build_appliance_recommendation(
+            "Washing Machine",
+            live.washing_machine_power_w,
+            2,
+            &agile.slots,
+        ),
+        tumble_dryer: build_appliance_recommendation(
+            "Tumble Dryer",
+            live.tumble_dryer_power_w,
+            5,
+            &agile.slots,
+        ),
+    }
+}
+
 fn start_home_assistant_polling(state: AppState, ha_config: HaConfig) {
     tokio::spawn(async move {
         loop {
             let now = chrono::Local::now().format("%H:%M:%S");
 
-            let house_power =
-                fetch_numeric_entity_state(&ha_config, "sensor.total_power_being_used").await;
-
-            let solar_power =
-                fetch_numeric_entity_state(&ha_config, "sensor.solar_panel_led_sensor_power").await;
-
-            let house_value = match house_power {
-                Ok(value) => value,
+            let live = match fetch_all_states(&ha_config).await {
+                Ok(states) => extract_live_state(&states),
                 Err(err) => {
-                    eprintln!("[{now}] HA house usage fetch failed: {err}");
-                    None
-                }
-            };
-
-            let solar_value = match solar_power {
-                Ok(value) => value,
-                Err(err) => {
-                    eprintln!("[{now}] HA solar generation fetch failed: {err}");
-                    None
+                    eprintln!("[{now}] HA fetch failed: {err}");
+                    LiveState {
+                        house_power_w: None,
+                        solar_generation_w: None,
+                        dishwasher_power_w: None,
+                        washing_machine_power_w: None,
+                        tumble_dryer_power_w: None,
+                    }
                 }
             };
 
             {
                 let mut dashboard = state.dashboard.write().await;
-                dashboard.live.house_power_w = house_value;
-                dashboard.live.solar_generation_w = solar_value;
+                dashboard.live = live.clone();
+                dashboard.appliances =
+                    build_appliance_recommendations(&dashboard.live, &dashboard.agile);
             }
 
-            let house_text = house_value
+            let house_text = live
+                .house_power_w
                 .map(|v| format!("{v:.2}W"))
                 .unwrap_or_else(|| "unavailable".to_string());
 
-            let solar_text = solar_value
+            let solar_text = live
+                .solar_generation_w
                 .map(|v| format!("{v:.2}W"))
                 .unwrap_or_else(|| "unavailable".to_string());
 
-            println!("[{now}] HA poll | house: {house_text} | solar: {solar_text}");
+            let dishwasher_text = live
+                .dishwasher_power_w
+                .map(|v| format!("{v:.2}W"))
+                .unwrap_or_else(|| "unavailable".to_string());
+
+            let washer_text = live
+                .washing_machine_power_w
+                .map(|v| format!("{v:.2}W"))
+                .unwrap_or_else(|| "unavailable".to_string());
+
+            let dryer_text = live
+                .tumble_dryer_power_w
+                .map(|v| format!("{v:.2}W"))
+                .unwrap_or_else(|| "unavailable".to_string());
+
+            println!(
+                "[{now}] HA poll | house: {house_text} | solar: {solar_text} | dishwasher: {dishwasher_text} | washer: {washer_text} | dryer: {dryer_text}"
+            );
 
             tokio::time::sleep(Duration::from_secs(15)).await;
         }

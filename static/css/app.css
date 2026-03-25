@@ -20,7 +20,6 @@
   --solar-green-dark: #15803d;
   --solar-green-mid: #22c55e;
   --solar-green-bright: #4ade80;
-
 }
 
 * {
@@ -46,10 +45,10 @@ body {
 .dashboard {
   width: 100vw;
   height: 100vh;
-  padding: 8px;
+  padding: 4px;
   display: grid;
-  grid-template-rows: 36px 1fr;
-  gap: 8px;
+  grid-template-rows: 28px 1fr;
+  gap: 4px;
 }
 
 /* Header */
@@ -57,19 +56,19 @@ body {
   display: grid;
   grid-template-columns: 1fr auto;
   align-items: center;
-  gap: 8px;
-  padding: 0 4px;
+  gap: 4px;
+  padding: 0 2px;
 }
 
 .header-time {
-  font-size: 1.25rem;
+  font-size: 1.1rem;
   font-weight: 700;
   line-height: 1;
 }
 
 .header-status {
   color: var(--muted);
-  font-size: 0.8rem;
+  font-size: 0.7rem;
   text-align: right;
   white-space: nowrap;
 }
@@ -78,16 +77,58 @@ body {
 .dashboard-main {
   min-height: 0;
   display: grid;
-  grid-template-rows: 190px auto;
+  grid-template-rows: 170px 42px auto;
   align-content: start;
-  gap: 8px;
+  gap: 4px;
 }
 
 .top-row {
   min-height: 0;
   display: grid;
   grid-template-columns: 2.3fr 2fr 1fr;
+  gap: 6px;
+}
+
+/* Appliance row */
+.appliance-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  align-items: center;
   gap: 8px;
+  padding: 4px 12px;
+  min-height: 0;
+}
+
+.appliance-item {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start; 
+  gap: 6px;
+}
+
+.appliance-label {
+  color: var(--muted);
+  font-size: 1rem;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.appliance-label::after {
+  content: ":";
+  margin-left: 2px;
+}
+
+.appliance-value {
+  color: var(--text);
+  font-size: 0.95rem;
+  font-weight: 700;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.appliance-value.running {
+  color: var(--cheap);
+  font-weight: 800;
 }
 
 /* Panels */
@@ -95,7 +136,7 @@ body {
   background: var(--panel);
   border: 1px solid var(--panel-border);
   border-radius: 14px;
-  padding: 10px 14px;
+  padding: 8px 12px;
   min-width: 0;
   min-height: 0;
 }
@@ -105,19 +146,19 @@ body {
   justify-content: space-between;
   align-items: baseline;
   gap: 8px;
-  margin-bottom: 4px;
+  margin-bottom: 3px;
 }
 
 .panel-title {
   margin: 0;
-  font-size: 0.92rem;
+  font-size: 0.88rem;
   font-weight: 700;
   line-height: 1.1;
 }
 
 .panel-subtitle {
   color: var(--muted);
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   text-align: right;
   white-space: nowrap;
 }
@@ -125,11 +166,11 @@ body {
 .metric-panel {
   display: grid;
   grid-template-rows: auto auto auto 1fr;
-  gap: 4px;
+  gap: 3px;
 }
 
 .panel-value {
-  font-size: 1.2rem;
+  font-size: 1.05rem;
   font-weight: 700;
   line-height: 1;
 }
@@ -140,7 +181,7 @@ body {
 
 .panel-subtext {
   color: var(--muted);
-  font-size: 0.74rem;
+  font-size: 0.68rem;
   line-height: 1.1;
 }
 
@@ -148,7 +189,7 @@ body {
   min-height: 0;
   display: grid;
   grid-template-rows: auto auto 1fr;
-  gap: 4px;
+  gap: 3px;
 }
 
 /* Gauges */
@@ -164,7 +205,7 @@ body {
 .gauge-wrap-house,
 .gauge-wrap-solar {
   height: 100%;
-  padding-top: 2px;
+  padding-top: 0;
 }
 
 .gauge {
@@ -232,13 +273,13 @@ body {
   align-items: center;
   gap: 10px;
   height: 100%;
-  padding-top: 2px;
+  padding-top: 0;
 }
 
 .battery-bar {
   width: 14px;
   height: 100%;
-  min-height: 56px;
+  min-height: 52px;
   background: rgba(255, 255, 255, 0.05);
   border-radius: 6px;
   overflow: hidden;
@@ -275,27 +316,26 @@ body {
 .agile-panel {
   display: grid;
   grid-template-rows: auto auto;
-  gap: 6px;
+  gap: 4px;
   align-content: start;
 }
 
 .agile-chart-wrap {
   min-height: 0;
   display: grid;
-  grid-template-rows: 1fr 14px 14px;
-  gap: 2px; /* was 4px */
+  grid-template-rows: 1fr 14px;
+  gap: 2px;
 }
 
 .agile-chart {
-  height: 80px;
+  height: 82px;
   display: flex;
   align-items: end;
   gap: 4px;
-  /* padding: 10px 6px 0 6px; */
-
   background: transparent;
   border: none;
   border-radius: 0;
+  position: relative;
 }
 
 .agile-chart::before {
@@ -305,7 +345,7 @@ body {
   right: 0;
   bottom: 0;
   height: 1px;
-  background: rgba(255,255,255,0.05);
+  background: rgba(255, 255, 255, 0.05);
 }
 
 .agile-bar {
@@ -347,7 +387,7 @@ body {
   bottom: calc(100% + 4px);
   left: 50%;
   transform: translateX(-50%);
-  font-size: 0.68rem;
+  font-size: 0.64rem;
   color: var(--text);
   white-space: nowrap;
   opacity: 0;
@@ -362,9 +402,9 @@ body {
 
 .agile-time-axis {
   position: relative;
-  height: 14px;
+  height: 12px;
   color: var(--muted);
-  font-size: 0.7rem;
+  font-size: 0.65rem;
 }
 
 .agile-time-label {
@@ -372,14 +412,6 @@ body {
   transform: translateX(-50%);
   white-space: nowrap;
   line-height: 1;
-}
-
-.agile-axis {
-  display: flex;
-  justify-content: space-between;
-  color: var(--muted);
-  font-size: 0.7rem;
-  padding: 0 2px;
 }
 
 /* Debug hidden in device layout */

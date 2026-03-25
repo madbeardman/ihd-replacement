@@ -158,6 +158,30 @@ function renderAgileChart(data) {
     });
 }
 
+function updateApplianceRow(appliances) {
+    const washerEl = document.getElementById("appliance-washing-machine");
+    const dishwasherEl = document.getElementById("appliance-dishwasher");
+    const dryerEl = document.getElementById("appliance-tumble-dryer");
+
+    console.log("Updating appliances:", appliances);
+
+    if (!washerEl || !dishwasherEl || !dryerEl || !appliances) return;
+
+    const washer = appliances.washing_machine?.display ?? "--";
+    const dishwasher = appliances.dishwasher?.display ?? "--";
+    const dryer = appliances.tumble_dryer?.display ?? "--";
+
+    console.log("Appliance display values:", { washer, dishwasher, dryer });
+
+    washerEl.textContent = washer;
+    dishwasherEl.textContent = dishwasher;
+    dryerEl.textContent = dryer;
+
+    washerEl.classList.toggle("running", appliances.washing_machine?.running === true);
+    dishwasherEl.classList.toggle("running", appliances.dishwasher?.running === true);
+    dryerEl.classList.toggle("running", appliances.tumble_dryer?.running === true);
+}
+
 async function loadDashboard() {
     if (dashboardRequestInFlight) return;
     dashboardRequestInFlight = true;
@@ -218,6 +242,7 @@ async function loadDashboard() {
         }
 
         renderAgileChart(data.agile);
+        updateApplianceRow(data.appliances);
 
     } catch (error) {
         const updatedEl = document.getElementById("last-updated");
