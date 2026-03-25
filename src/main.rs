@@ -65,7 +65,7 @@ async fn main() {
     let agile_dir = PathBuf::from("data/agile");
     let ha_config = load_ha_config().expect("Failed to load Home Assistant config");
 
-    fetch_and_store_latest_agile(&agile_dir)
+    fetch_and_store_latest_agile(&agile_dir, &ha_config)
         .await
         .expect("Failed to fetch/store Agile data at startup");
 
@@ -96,6 +96,7 @@ async fn main() {
         .await
         .expect("Failed to bind server");
 
+    println!("----------------------------------------");
     println!("Frontend:      http://127.0.0.1:3000");
     println!("Dashboard API: http://127.0.0.1:3000/api/dashboard");
     println!("Agile API:     http://127.0.0.1:3000/api/agile");
@@ -103,11 +104,12 @@ async fn main() {
     println!(
         "Logging:       {}",
         if ha_config.dev_mode {
-            "\x1b[32mENABLED\x1b[0m"
+            "ENABLED (DEV_MODE=true)"
         } else {
-            "\x1b[90mdisabled\x1b[0m"
+            "disabled (DEV_MODE=false)"
         }
     );
+    println!("----------------------------------------");
 
     axum::serve(listener, app).await.expect("Server failed");
 }
@@ -139,7 +141,7 @@ fn start_scheduler(state: AppState, agile_dir: PathBuf, ha_config: HaConfig) {
                         marker.year, marker.month, marker.day, hour, minute
                     );
 
-                    match fetch_and_store_latest_agile(&agile_dir).await {
+                    match fetch_and_store_latest_agile(&agile_dir, &ha_config).await {
                         Ok(()) => {
                             println!("Scheduled Agile fetch/store completed");
                             last_run = Some(marker);
@@ -166,15 +168,23 @@ fn start_scheduler(state: AppState, agile_dir: PathBuf, ha_config: HaConfig) {
     });
 }
 
-async fn fetch_and_store_latest_agile(agile_dir: &Path) -> Result<(), AppError> {
+async fn fetch_and_store_latest_agile(
+    agile_dir: &Path,
+    ha_config: &HaConfig,
+) -> Result<(), AppError> {
     let api = fetch_latest_agile_rates().await?;
-    println!("Fetched {} raw Agile slots", api.results.len());
+
+    if ha_config.dev_mode {
+        println!("Fetched {} raw Agile slots", api.results.len());
+    }
 
     let days = build_stored_days(&api);
 
     for day in &days {
         let path = save_stored_day(agile_dir, day)?;
-        println!("Saved {} slots to {}", day.slots.len(), path.display());
+        if ha_config.dev_mode {
+            println!("Saved {} slots to {}", day.slots.len(), path.display());
+        }
     }
 
     Ok(())
