@@ -15,6 +15,7 @@ use crate::agile::{
     RollingWindow, build_rolling_window, build_stored_days, fetch_latest_agile_rates,
     load_stored_day, save_stored_day, stored_day_to_day_slots,
 };
+use crate::home_assistant::log_dev;
 use crate::home_assistant::{
     HaConfig, LiveState, extract_live_state, fetch_all_states, load_ha_config,
 };
@@ -98,6 +99,15 @@ async fn main() {
     println!("Frontend:      http://127.0.0.1:3000");
     println!("Dashboard API: http://127.0.0.1:3000/api/dashboard");
     println!("Agile API:     http://127.0.0.1:3000/api/agile");
+
+    println!(
+        "Logging:       {}",
+        if ha_config.dev_mode {
+            "\x1b[32mENABLED\x1b[0m"
+        } else {
+            "\x1b[90mdisabled\x1b[0m"
+        }
+    );
 
     axum::serve(listener, app).await.expect("Server failed");
 }
@@ -357,8 +367,11 @@ fn start_home_assistant_polling(state: AppState, ha_config: HaConfig) {
                 .map(|v| format!("{v:.2}W"))
                 .unwrap_or_else(|| "unavailable".to_string());
 
-            println!(
-                "[{now}] HA poll | house: {house_text} | solar: {solar_text} | dishwasher: {dishwasher_text} | washer: {washer_text} | dryer: {dryer_text}"
+            log_dev(
+                &ha_config,
+                format!(
+                    "[{now}] HA poll | house: {house_text} | solar: {solar_text} | dishwasher: {dishwasher_text} | washer: {washer_text} | dryer: {dryer_text}"
+                ),
             );
 
             tokio::time::sleep(Duration::from_secs(15)).await;

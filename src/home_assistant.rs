@@ -6,6 +6,7 @@ type AppError = Box<dyn std::error::Error + Send + Sync>;
 pub struct HaConfig {
     pub base_url: String,
     pub token: String,
+    pub dev_mode: bool,
 }
 
 #[derive(Debug, Deserialize)]
@@ -23,11 +24,20 @@ pub struct LiveState {
     pub tumble_dryer_power_w: Option<f64>,
 }
 
-pub fn load_ha_config() -> Result<HaConfig, AppError> {
+pub fn load_ha_config() -> Result<HaConfig, Box<dyn std::error::Error>> {
     let base_url = std::env::var("HA_BASE_URL")?;
     let token = std::env::var("HA_TOKEN")?;
 
-    Ok(HaConfig { base_url, token })
+    let dev_mode = std::env::var("DEV_MODE")
+        .unwrap_or_else(|_| "false".to_string())
+        .to_lowercase()
+        == "true";
+
+    Ok(HaConfig {
+        base_url,
+        token,
+        dev_mode,
+    })
 }
 
 pub async fn fetch_all_states(config: &HaConfig) -> Result<Vec<HaState>, AppError> {
@@ -66,4 +76,10 @@ pub fn extract_live_state(states: &[HaState]) -> LiveState {
 
 pub fn is_appliance_running(power_w: Option<f64>) -> bool {
     power_w.unwrap_or(0.0) > 10.0
+}
+
+pub fn log_dev(config: &HaConfig, message: impl AsRef<str>) {
+    if config.dev_mode {
+        println!("{}", message.as_ref());
+    }
 }
