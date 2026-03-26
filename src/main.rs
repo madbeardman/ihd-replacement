@@ -24,9 +24,19 @@ type AppError = Box<dyn std::error::Error + Send + Sync>;
 
 #[derive(Debug, Clone, serde::Serialize)]
 struct DashboardState {
+    dev_mode: bool,
     live: LiveState,
     agile: RollingWindow,
     appliances: ApplianceRecommendations,
+    usage_metrics: UsageRotationMetrics,
+}
+
+#[derive(Debug, Clone, serde::Serialize)]
+struct UsageRotationMetrics {
+    current_power_w: Option<f64>,
+    current_price_p_per_kwh: Option<f64>,
+    current_cost_per_hour_gbp: Option<f64>,
+    cost_today_gbp: Option<f64>,
 }
 
 #[derive(Clone)]
@@ -211,11 +221,14 @@ async fn load_dashboard_state(
     };
 
     let appliances = build_appliance_recommendations(&live, &agile);
+    let usage_metrics = build_usage_rotation_metrics(&live, &agile);
 
     Ok(DashboardState {
+        dev_mode: ha_config.dev_mode,
         live,
         agile,
         appliances,
+        usage_metrics,
     })
 }
 
@@ -350,6 +363,8 @@ fn start_home_assistant_polling(state: AppState, ha_config: HaConfig) {
                 dashboard.live = live.clone();
                 dashboard.appliances =
                     build_appliance_recommendations(&dashboard.live, &dashboard.agile);
+                dashboard.usage_metrics =
+                    build_usage_rotation_metrics(&dashboard.live, &dashboard.agile);
             }
 
             let house_text = live
@@ -389,6 +404,26 @@ fn start_home_assistant_polling(state: AppState, ha_config: HaConfig) {
     });
 }
 
+fn build_usage_rotation_metrics(live: &LiveState, agile: &RollingWindow) -> UsageRotationMetrics {
+    let current_power_w = live.house_power_w;
+    let current_price_p_per_kwh = agile.slots.first().map(|slot| slot.value_inc_vat);
+
+    let current_cost_per_hour_gbp = match (current_power_w, current_price_p_per_kwh) {
+        (Some(power_w), Some(price_p_per_kwh)) => {
+            let pounds_per_kwh = price_p_per_kwh / 100.0;
+            Some((power_w / 1000.0) * pounds_per_kwh)
+        }
+        _ => None,
+    };
+
+    UsageRotationMetrics {
+        current_power_w,
+        current_price_p_per_kwh,
+        current_cost_per_hour_gbp,
+        cost_today_gbp: None, // placeholder until wired in
+    }
+}
+
 async fn get_dashboard(State(state): State<AppState>) -> Json<DashboardState> {
     let dashboard = state.dashboard.read().await;
     Json(dashboard.clone())
@@ -399,6 +434,16 @@ async fn get_agile(State(state): State<AppState>) -> Json<RollingWindow> {
     Json(dashboard.agile.clone())
 }
 
-async fn index() -> Html<&'static str> {
-    Html(include_str!("../static/index.html"))
+async fn index(State(state): State<AppState>) -> Html<String> {
+    let html = include_str!("../static/index.html");
+
+    let dev_mode = {
+        let dashboard = state.dashboard.read().await;
+        if dashboard.dev_mode { "true" } else { "false" }
+    };
+
+    Html(html.replace(
+        r#"data-dev-mode="false""#,
+        &format!(r#"data-dev-mode="{}""#, dev_mode),
+    ))
 }

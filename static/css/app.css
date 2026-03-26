@@ -433,3 +433,22 @@ pre {
   font-size: 0.75rem;
   line-height: 1.35;
 }
+
+/* Header Icons */
+/* Poll indicator (dev mode only) */
+.poll-indicator {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #1f7a3a; /* calmer green when idle */
+  transition: background-color 1s ease;
+}
+
+.poll-indicator.pulse {
+  background: #4ade80; /* brighter green on successful poll */
+}
+
+/* Error state */
+.poll-indicator.error {
+  background: #ef4444; /* red */
+}

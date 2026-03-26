@@ -1,4 +1,11 @@
 let dashboardRequestInFlight = false;
+let latestUsageMetrics = null;
+let usageRotationIndex = 0;
+
+function isDevMode() {
+    const dashboard = document.getElementById("dashboard");
+    return dashboard?.dataset.devMode === "true";
+}
 
 function formatPrice(value) {
     return `${value.toFixed(2)}p`;
@@ -15,6 +22,56 @@ function formatClock(now = new Date()) {
         minute: "2-digit",
         hour12: false,
     });
+}
+
+function formatGbp(value) {
+    return `£${value.toFixed(3)}`;
+}
+
+function renderUsageRotation() {
+    if (!latestUsageMetrics) return;
+
+    const valueEl = document.getElementById("usage-main-value");
+    const subtextEl = document.getElementById("usage-subtext");
+
+    if (!valueEl || !subtextEl) return;
+
+    const states = [
+        {
+            value:
+                typeof latestUsageMetrics.current_power_w === "number"
+                    ? `${Math.round(latestUsageMetrics.current_power_w)}W`
+                    : "--",
+            subtext: "Electricity + Gas",
+        },
+        {
+            value:
+                typeof latestUsageMetrics.current_cost_per_hour_gbp === "number"
+                    ? `${formatGbp(latestUsageMetrics.current_cost_per_hour_gbp)}/hr`
+                    : "--",
+            subtext:
+                typeof latestUsageMetrics.current_price_p_per_kwh === "number"
+                    ? `At ${formatPrice(latestUsageMetrics.current_price_p_per_kwh)}`
+                    : "Current cost",
+        },
+        {
+            value:
+                typeof latestUsageMetrics.cost_today_gbp === "number"
+                    ? formatGbp(latestUsageMetrics.cost_today_gbp)
+                    : "--",
+            subtext: "Cost Today",
+        },
+    ];
+
+    const current = states[usageRotationIndex % states.length];
+    valueEl.textContent = current.value;
+    subtextEl.textContent = current.subtext;
+}
+
+function advanceUsageRotation() {
+    if (!latestUsageMetrics) return;
+    usageRotationIndex = (usageRotationIndex + 1) % 3;
+    renderUsageRotation();
 }
 
 function updateClock() {
@@ -49,6 +106,46 @@ function getSolarColor(watts) {
     if (watts < 1500) return "#84cc16";
     if (watts < 3000) return "#f97316";
     return "#ef4444";
+}
+
+function showPollIndicator() {
+    const el = document.getElementById("poll-indicator");
+    if (!el) return;
+    el.style.display = "inline-block";
+}
+
+function hidePollIndicator() {
+    const el = document.getElementById("poll-indicator");
+    if (!el) return;
+    el.style.display = "none";
+}
+
+function pulsePollIndicator() {
+    const el = document.getElementById("poll-indicator");
+    if (!el) return;
+
+    el.classList.remove("pulse");
+    void el.offsetWidth;
+    el.classList.add("pulse");
+
+    setTimeout(() => {
+        el.classList.remove("pulse");
+    }, 1000);
+}
+
+function setPollIndicatorOk() {
+    const el = document.getElementById("poll-indicator");
+    if (!el) return;
+
+    el.classList.remove("error");
+}
+
+function setPollIndicatorError() {
+    const el = document.getElementById("poll-indicator");
+    if (!el) return;
+
+    el.classList.remove("pulse");
+    el.classList.add("error");
 }
 
 function updateHouseUsageGauge(watts) {
@@ -163,7 +260,9 @@ function updateApplianceRow(appliances) {
     const dishwasherEl = document.getElementById("appliance-dishwasher");
     const dryerEl = document.getElementById("appliance-tumble-dryer");
 
-    console.log("Updating appliances:", appliances);
+    if (isDevMode()) {
+        console.log("Updating appliances:", appliances);
+    }
 
     if (!washerEl || !dishwasherEl || !dryerEl || !appliances) return;
 
@@ -171,7 +270,9 @@ function updateApplianceRow(appliances) {
     const dishwasher = appliances.dishwasher?.display ?? "--";
     const dryer = appliances.tumble_dryer?.display ?? "--";
 
-    console.log("Appliance display values:", { washer, dishwasher, dryer });
+    if (isDevMode()) {
+        console.log("Appliance display values:", { washer, dishwasher, dryer });
+    }
 
     washerEl.textContent = washer;
     dishwasherEl.textContent = dishwasher;
@@ -200,26 +301,25 @@ async function loadDashboard() {
 
         const data = await response.json();
 
-        const updatedEl = document.getElementById("last-updated");
-        if (updatedEl) {
-            updatedEl.textContent = `Polled ${formatLastUpdated()}`;
+        showPollIndicator();
+        setPollIndicatorOk();
+        pulsePollIndicator();
+
+        const indicator = document.getElementById("poll-indicator");
+        if (indicator) {
+            indicator.style.display = "inline-block";
         }
 
         if (output) {
             output.textContent = JSON.stringify(data, null, 2);
         }
 
+        latestUsageMetrics = data.usage_metrics ?? null;
+        renderUsageRotation();
+
         if (typeof data.live?.house_power_w === "number") {
-            const power = Math.round(data.live.house_power_w);
-
-            const valueEl = document.querySelector("#usage-panel .panel-value");
-            if (valueEl) valueEl.textContent = `${power}W`;
-
-            updateHouseUsageGauge(power);
+            updateHouseUsageGauge(Math.round(data.live.house_power_w));
         } else {
-            const valueEl = document.querySelector("#usage-panel .panel-value");
-            if (valueEl) valueEl.textContent = "--";
-
             updateHouseUsageGauge(0);
         }
 
@@ -245,12 +345,21 @@ async function loadDashboard() {
         updateApplianceRow(data.appliances);
 
     } catch (error) {
+        const dashboard = document.getElementById("dashboard");
+        const devMode = dashboard?.dataset.devMode === "true";
+
         const updatedEl = document.getElementById("last-updated");
         if (updatedEl) {
-            updatedEl.textContent = "Update failed";
+            updatedEl.textContent = devMode ? "Update failed" : "";
         }
 
-        output.textContent = String(error);
+        showPollIndicator();      // keep it visible
+        setPollIndicatorError();  // turn it red
+
+        if (output) {
+            output.textContent = String(error);
+        }
+
     } finally {
         dashboardRequestInFlight = false;
     }
@@ -284,6 +393,7 @@ function init() {
 
     setInterval(updateClock, 1000);
     setInterval(loadDashboard, 15000);
+    setInterval(advanceUsageRotation, 8000);
 }
 
 init();

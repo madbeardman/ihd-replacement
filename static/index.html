@@ -9,10 +9,12 @@
 </head>
 
 <body>
-    <div class="dashboard">
+    <div class="dashboard" id="dashboard" data-dev-mode="false">
         <header class="dashboard-header">
             <div class="header-time" id="header-time">00:00</div>
-            <div class="header-status" id="last-updated">Updated --:--</div>
+            <div class="header-status" id="status-icons">
+                <span id="poll-indicator" class="poll-indicator"></span>
+            </div>
         </header>
 
         <main class="dashboard-main">
@@ -22,8 +24,8 @@
                         <h2 class="panel-title">House Usage</h2>
                     </div>
 
-                    <div class="panel-value">--</div>
-                    <div class="panel-subtext">Electricity + Gas</div>
+                    <div class="panel-value" id="usage-main-value">--</div>
+                    <div class="panel-subtext" id="usage-subtext">Electricity + Gas</div>
 
                     <div class="gauge-wrap gauge-wrap-house">
                         <svg class="gauge gauge-double gauge-house-large" viewBox="0 0 320 180" aria-hidden="true">
