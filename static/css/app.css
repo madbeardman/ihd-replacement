@@ -41,14 +41,14 @@ body {
   overflow: hidden;
 }
 
-/* 800 x 400 fixed dashboard */
+/* 800 x 480 dashboard */
 .dashboard {
   width: 100vw;
   height: 100vh;
-  padding: 4px;
+  padding: 6px;
   display: grid;
-  grid-template-rows: 28px 1fr;
-  gap: 4px;
+  grid-template-rows: 34px 1fr;
+  gap: 6px;
 }
 
 /* Header */
@@ -56,19 +56,19 @@ body {
   display: grid;
   grid-template-columns: 1fr auto;
   align-items: center;
-  gap: 4px;
+  gap: 6px;
   padding: 0 2px;
 }
 
 .header-time {
-  font-size: 1.1rem;
+  font-size: 1.35rem;
   font-weight: 700;
   line-height: 1;
 }
 
 .header-status {
   color: var(--muted);
-  font-size: 0.7rem;
+  font-size: 0.8rem;
   text-align: right;
   white-space: nowrap;
 }
@@ -77,16 +77,16 @@ body {
 .dashboard-main {
   min-height: 0;
   display: grid;
-  grid-template-rows: 170px 42px auto;
+  grid-template-rows: 210px 50px auto;
   align-content: start;
-  gap: 4px;
+  gap: 6px;
 }
 
 .top-row {
   min-height: 0;
   display: grid;
   grid-template-columns: 2.3fr 2fr 1fr;
-  gap: 6px;
+  gap: 8px;
 }
 
 /* Appliance row */
@@ -94,21 +94,21 @@ body {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   align-items: center;
-  gap: 8px;
-  padding: 4px 12px;
+  gap: 10px;
+  padding: 6px 14px;
   min-height: 0;
 }
 
 .appliance-item {
   display: flex;
   align-items: center;
-  justify-content: flex-start; 
-  gap: 6px;
+  justify-content: flex-start;
+  gap: 8px;
 }
 
 .appliance-label {
   color: var(--muted);
-  font-size: 1rem;
+  font-size: 1.05rem;
   line-height: 1;
   white-space: nowrap;
 }
@@ -120,7 +120,7 @@ body {
 
 .appliance-value {
   color: var(--text);
-  font-size: 0.95rem;
+  font-size: 1rem;
   font-weight: 700;
   line-height: 1;
   white-space: nowrap;
@@ -135,8 +135,8 @@ body {
 .panel {
   background: var(--panel);
   border: 1px solid var(--panel-border);
-  border-radius: 14px;
-  padding: 8px 12px;
+  border-radius: 16px;
+  padding: 10px 14px;
   min-width: 0;
   min-height: 0;
 }
@@ -146,19 +146,19 @@ body {
   justify-content: space-between;
   align-items: baseline;
   gap: 8px;
-  margin-bottom: 3px;
+  margin-bottom: 4px;
 }
 
 .panel-title {
   margin: 0;
-  font-size: 0.88rem;
+  font-size: 0.95rem;
   font-weight: 700;
   line-height: 1.1;
 }
 
 .panel-subtitle {
   color: var(--muted);
-  font-size: 0.75rem;
+  font-size: 0.8rem;
   text-align: right;
   white-space: nowrap;
 }
@@ -166,11 +166,11 @@ body {
 .metric-panel {
   display: grid;
   grid-template-rows: auto auto auto 1fr;
-  gap: 3px;
+  gap: 4px;
 }
 
 .panel-value {
-  font-size: 1.05rem;
+  font-size: 1.3rem;
   font-weight: 700;
   line-height: 1;
 }
@@ -181,7 +181,7 @@ body {
 
 .panel-subtext {
   color: var(--muted);
-  font-size: 0.68rem;
+  font-size: 0.8rem;
   line-height: 1.1;
 }
 
@@ -189,7 +189,7 @@ body {
   min-height: 0;
   display: grid;
   grid-template-rows: auto auto 1fr;
-  gap: 3px;
+  gap: 4px;
 }
 
 /* Gauges */
@@ -205,7 +205,7 @@ body {
 .gauge-wrap-house,
 .gauge-wrap-solar {
   height: 100%;
-  padding-top: 0;
+  padding-top: 2px;
 }
 
 .gauge {
@@ -271,15 +271,15 @@ body {
   min-height: 0;
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
   height: 100%;
-  padding-top: 0;
+  padding-top: 2px;
 }
 
 .battery-bar {
-  width: 14px;
+  width: 16px;
   height: 100%;
-  min-height: 52px;
+  min-height: 64px;
   background: rgba(255, 255, 255, 0.05);
   border-radius: 6px;
   overflow: hidden;
@@ -301,14 +301,14 @@ body {
 }
 
 .battery-value {
-  font-size: 0.95rem;
+  font-size: 1rem;
   font-weight: 700;
   line-height: 1;
 }
 
 .battery-caption {
   color: var(--muted);
-  font-size: 0.72rem;
+  font-size: 0.78rem;
   line-height: 1;
 }
 
@@ -316,22 +316,22 @@ body {
 .agile-panel {
   display: grid;
   grid-template-rows: auto auto;
-  gap: 4px;
+  gap: 6px;
   align-content: start;
 }
 
 .agile-chart-wrap {
   min-height: 0;
   display: grid;
-  grid-template-rows: 1fr 14px;
-  gap: 2px;
+  grid-template-rows: 1fr 16px;
+  gap: 3px;
 }
 
 .agile-chart {
-  height: 82px;
+  height: 108px;
   display: flex;
   align-items: end;
-  gap: 4px;
+  gap: 5px;
   background: transparent;
   border: none;
   border-radius: 0;
@@ -350,8 +350,8 @@ body {
 
 .agile-bar {
   flex: 1 1 0;
-  min-width: 8px;
-  border-radius: 5px 5px 0 0;
+  min-width: 10px;
+  border-radius: 6px 6px 0 0;
   position: relative;
   opacity: 0.95;
   transition:
@@ -387,7 +387,7 @@ body {
   bottom: calc(100% + 4px);
   left: 50%;
   transform: translateX(-50%);
-  font-size: 0.64rem;
+  font-size: 0.72rem;
   color: var(--text);
   white-space: nowrap;
   opacity: 0;
@@ -402,9 +402,9 @@ body {
 
 .agile-time-axis {
   position: relative;
-  height: 12px;
+  height: 16px;
   color: var(--muted);
-  font-size: 0.65rem;
+  font-size: 0.78rem;
 }
 
 .agile-time-label {
@@ -435,20 +435,18 @@ pre {
 }
 
 /* Header Icons */
-/* Poll indicator (dev mode only) */
 .poll-indicator {
   width: 14px;
   height: 14px;
   border-radius: 50%;
-  background: #1f7a3a; /* calmer green when idle */
+  background: #1f7a3a;
   transition: background-color 1s ease;
 }
 
 .poll-indicator.pulse {
-  background: #4ade80; /* brighter green on successful poll */
+  background: #4ade80;
 }
 
-/* Error state */
 .poll-indicator.error {
-  background: #ef4444; /* red */
+  background: #ef4444;
 }

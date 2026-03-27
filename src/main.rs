@@ -102,14 +102,14 @@ async fn main() {
         .nest_service("/static", ServeDir::new("static"))
         .with_state(state);
 
-    let listener = tokio::net::TcpListener::bind("127.0.0.1:3000")
+    let listener = tokio::net::TcpListener::bind("0.0.0.0:3000")
         .await
         .expect("Failed to bind server");
 
     println!("----------------------------------------");
-    println!("Frontend:      http://127.0.0.1:3000");
-    println!("Dashboard API: http://127.0.0.1:3000/api/dashboard");
-    println!("Agile API:     http://127.0.0.1:3000/api/agile");
+    println!("Frontend:      http://0.0.0.0:3000");
+    println!("Dashboard API: http://0.0.0.0:3000/api/dashboard");
+    println!("Agile API:     http://0.0.0.0:3000/api/agile");
 
     println!(
         "Logging:       {}",
