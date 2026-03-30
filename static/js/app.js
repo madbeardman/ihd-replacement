@@ -101,11 +101,8 @@ function getHouseUsageColour(watts) {
     return "var(--usage-red)";
 }
 
-function getSolarColor(watts) {
-    if (watts < 200) return "#22c55e";
-    if (watts < 1500) return "#84cc16";
-    if (watts < 3000) return "#f97316";
-    return "#ef4444";
+function getSolarColor(_watts) {
+    return "#16a34a";
 }
 
 function showPollIndicator() {
@@ -392,7 +389,7 @@ function init() {
     loadDashboard();
 
     setInterval(updateClock, 1000);
-    setInterval(loadDashboard, 15000);
+    setInterval(loadDashboard, 10000);
     setInterval(advanceUsageRotation, 8000);
 }
 

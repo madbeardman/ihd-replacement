@@ -173,7 +173,8 @@ fn start_scheduler(state: AppState, agile_dir: PathBuf, ha_config: HaConfig) {
                 }
             }
 
-            tokio::time::sleep(Duration::from_secs(30)).await;
+            let poll_interval = get_poll_interval_seconds();
+            tokio::time::sleep(Duration::from_secs(poll_interval)).await;
         }
     });
 }
@@ -446,4 +447,11 @@ async fn index(State(state): State<AppState>) -> Html<String> {
         r#"data-dev-mode="false""#,
         &format!(r#"data-dev-mode="{}""#, dev_mode),
     ))
+}
+
+fn get_poll_interval_seconds() -> u64 {
+    let now = Local::now();
+    let hour = now.hour();
+
+    if (7..22).contains(&hour) { 10 } else { 20 }
 }
