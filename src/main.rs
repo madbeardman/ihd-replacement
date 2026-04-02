@@ -36,9 +36,14 @@ async fn main() {
         .expect("Failed to fetch/store Agile data at startup");
 
     if let Some(config) = octopus_config.as_ref() {
-        history::fetch_and_store_yesterday_history(&history_dir, config, ha_config.dev_mode)
-            .await
-            .expect("Failed to fetch/store yesterday history");
+        history::fetch_and_store_yesterday_history(
+            &history_dir,
+            &agile_dir,
+            config,
+            ha_config.dev_mode,
+        )
+        .await
+        .expect("Failed to fetch/store yesterday history");
     } else {
         println!("Octopus config missing — history disabled");
     }

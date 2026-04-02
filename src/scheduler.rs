@@ -52,6 +52,7 @@ pub fn start_scheduler(
                             if let Some(config) = octopus_config.as_ref() {
                                 match fetch_and_store_yesterday_history(
                                     &history_dir,
+                                    &agile_dir,
                                     config,
                                     ha_config.dev_mode,
                                 )
