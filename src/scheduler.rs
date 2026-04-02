@@ -8,10 +8,17 @@ use crate::dashboard::{
     build_appliance_recommendations, build_usage_rotation_metrics, fetch_and_store_latest_agile,
     get_poll_interval_seconds, load_dashboard_state,
 };
+use crate::history::{OctopusConfig, fetch_and_store_yesterday_history};
 use crate::home_assistant::{HaConfig, LiveState, extract_live_state, fetch_all_states, log_dev};
 use crate::models::FetchMarker;
 
-pub fn start_scheduler(state: AppState, agile_dir: PathBuf, ha_config: HaConfig) {
+pub fn start_scheduler(
+    state: AppState,
+    agile_dir: PathBuf,
+    history_dir: PathBuf,
+    ha_config: HaConfig,
+    octopus_config: OctopusConfig,
+) {
     tokio::spawn(async move {
         let mut last_run: Option<FetchMarker> = None;
 
@@ -41,6 +48,22 @@ pub fn start_scheduler(state: AppState, agile_dir: PathBuf, ha_config: HaConfig)
                     match fetch_and_store_latest_agile(&agile_dir, &ha_config).await {
                         Ok(()) => {
                             println!("Scheduled Agile fetch/store completed");
+
+                            match fetch_and_store_yesterday_history(
+                                &history_dir,
+                                &octopus_config,
+                                ha_config.dev_mode,
+                            )
+                            .await
+                            {
+                                Ok(()) => {
+                                    println!("Scheduled history fetch/store completed");
+                                }
+                                Err(err) => {
+                                    eprintln!("Scheduled history fetch failed: {err}");
+                                }
+                            }
+
                             last_run = Some(marker);
                         }
                         Err(err) => {
