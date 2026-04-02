@@ -29,15 +29,19 @@ async fn main() {
     let history_dir = PathBuf::from("data/history");
 
     let ha_config = load_ha_config().expect("Failed to load Home Assistant config");
-    let octopus_config = history::load_octopus_config().expect("Failed to load Octopus config");
+    let octopus_config = history::load_octopus_config().ok();
 
     fetch_and_store_latest_agile(&agile_dir, &ha_config)
         .await
         .expect("Failed to fetch/store Agile data at startup");
 
-    history::fetch_and_store_yesterday_history(&history_dir, &octopus_config, ha_config.dev_mode)
-        .await
-        .expect("Failed to fetch/store yesterday history");
+    if let Some(config) = octopus_config.as_ref() {
+        history::fetch_and_store_yesterday_history(&history_dir, config, ha_config.dev_mode)
+            .await
+            .expect("Failed to fetch/store yesterday history");
+    } else {
+        println!("Octopus config missing — history disabled");
+    }
 
     let dashboard = load_dashboard_state(&agile_dir, &ha_config)
         .await
@@ -78,7 +82,11 @@ async fn main() {
     println!("Frontend:      http://0.0.0.0:3000");
     println!("Dashboard API: http://0.0.0.0:3000/api/dashboard");
     println!("Agile API:     http://0.0.0.0:3000/api/agile");
-    println!("History API:   http://0.0.0.0:3000/api/history/yesterday");
+    if octopus_config.is_some() {
+        println!("History API:   http://0.0.0.0:3000/api/history/yesterday");
+    } else {
+        println!("History API:   disabled (missing Octopus config)");
+    }
     println!(
         "Logging:       {}",
         if ha_config.dev_mode {

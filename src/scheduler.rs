@@ -17,7 +17,7 @@ pub fn start_scheduler(
     agile_dir: PathBuf,
     history_dir: PathBuf,
     ha_config: HaConfig,
-    octopus_config: OctopusConfig,
+    octopus_config: Option<OctopusConfig>,
 ) {
     tokio::spawn(async move {
         let mut last_run: Option<FetchMarker> = None;
@@ -49,19 +49,25 @@ pub fn start_scheduler(
                         Ok(()) => {
                             println!("Scheduled Agile fetch/store completed");
 
-                            match fetch_and_store_yesterday_history(
-                                &history_dir,
-                                &octopus_config,
-                                ha_config.dev_mode,
-                            )
-                            .await
-                            {
-                                Ok(()) => {
-                                    println!("Scheduled history fetch/store completed");
+                            if let Some(config) = octopus_config.as_ref() {
+                                match fetch_and_store_yesterday_history(
+                                    &history_dir,
+                                    config,
+                                    ha_config.dev_mode,
+                                )
+                                .await
+                                {
+                                    Ok(()) => {
+                                        println!("Scheduled history fetch/store completed");
+                                    }
+                                    Err(err) => {
+                                        eprintln!("Scheduled history fetch failed: {err}");
+                                    }
                                 }
-                                Err(err) => {
-                                    eprintln!("Scheduled history fetch failed: {err}");
-                                }
+                            } else {
+                                println!(
+                                    "Octopus config missing — scheduled history fetch skipped"
+                                );
                             }
 
                             last_run = Some(marker);
