@@ -22,6 +22,10 @@
   --solar-green-bright: #4ade80;
 }
 
+[hidden] {
+  display: none !important;
+}
+
 * {
   box-sizing: border-box;
 }
@@ -71,6 +75,53 @@ body {
   font-size: 0.8rem;
   text-align: right;
   white-space: nowrap;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.icon-button {
+  width: 30px;
+  height: 30px;
+  border: none;
+  background: transparent;
+  color: rgba(255,255,255,0.62);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+}
+
+.icon-button:hover {
+  color: rgba(255,255,255,0.9);
+  background: transparent;
+}
+
+.icon-button:active {
+  transform: scale(0.94);
+}
+
+.icon-svg {
+  width: 22px;
+  height: 22px;
+  transform: translateY(1px);
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  overflow: visible;
+}
+
+.header-icon-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
 }
 
 /* Main layout */
@@ -449,4 +500,92 @@ pre {
 
 .poll-indicator.error {
   background: #ef4444;
+}
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  z-index: 1000;
+}
+
+.settings-modal {
+  position: fixed;
+  inset: 36px 24px 24px 24px;
+  z-index: 1001;
+
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  gap: 10px;
+
+  background: var(--panel);
+  border: 1px solid var(--panel-border);
+  border-radius: 16px;
+  padding: 14px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+}
+
+.settings-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.settings-title {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.settings-modal-body {
+  min-height: 0;
+  overflow: auto;
+  display: grid;
+  gap: 10px;
+  align-content: start;
+}
+
+.settings-section {
+  background: var(--panel-soft);
+  border: 1px solid var(--panel-soft-border);
+  border-radius: 12px;
+  padding: 12px;
+  display: grid;
+  gap: 6px;
+}
+
+.settings-label {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.settings-value {
+  font-size: 0.82rem;
+  color: var(--muted);
+  line-height: 1.25;
+}
+
+.settings-modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+}
+
+.settings-close-button {
+  min-width: 88px;
+  height: 36px;
+  border: 1px solid var(--panel-border);
+  border-radius: 10px;
+  background: var(--panel-soft);
+  color: var(--text);
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 0 14px;
+}
+
+.settings-close-button:active {
+  transform: scale(0.98);
 }

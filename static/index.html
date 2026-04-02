@@ -12,8 +12,22 @@
     <div class="dashboard" id="dashboard" data-dev-mode="false">
         <header class="dashboard-header">
             <div class="header-time" id="header-time">00:00</div>
-            <div class="header-status" id="status-icons">
-                <span id="poll-indicator" class="poll-indicator"></span>
+
+            <div class="header-actions">
+                <button class="icon-button" id="settings-button" type="button" aria-label="Open settings">
+                    <svg viewBox="0 0 24 24" class="icon-svg" aria-hidden="true">
+                        <circle cx="12" cy="12" r="3"></circle>
+                        <path
+                            d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33h0A1.65 1.65 0 0 0 10 3.09V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51h0a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82v0a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z">
+                        </path>
+                    </svg>
+                </button>
+
+                <div class="header-icon-group" id="header-icon-group">
+                    <!-- Future icons go here -->
+                </div>
+
+                <div class="poll-indicator" id="poll-indicator" aria-hidden="true"></div>
             </div>
         </header>
 
@@ -119,6 +133,38 @@
             </section>
         </main>
     </div>
+
+    <div class="modal-backdrop" id="settings-backdrop" hidden></div>
+
+    <section class="settings-modal" id="settings-modal" role="dialog" aria-modal="true" aria-labelledby="settings-title"
+        hidden>
+        <div class="settings-modal-header">
+            <h2 id="settings-title" class="settings-title">Settings</h2>
+        </div>
+
+        <div class="settings-modal-body">
+            <div class="settings-section">
+                <div class="settings-label">Display</div>
+                <div class="settings-value">Settings will go here next</div>
+            </div>
+
+            <div class="settings-section">
+                <div class="settings-label">System</div>
+                <div class="settings-value">Dev mode and polling later</div>
+            </div>
+
+            <div class="settings-section">
+                <div class="settings-label">Recommendations</div>
+                <div class="settings-value">Shower timings later</div>
+            </div>
+        </div>
+
+        <div class="settings-modal-footer">
+            <button class="settings-close-button" id="settings-close-button" type="button">
+                Close
+            </button>
+        </div>
+    </section>
 
     <script src="/static/js/app.js"></script>
 </body>
