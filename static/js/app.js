@@ -1,6 +1,8 @@
 let dashboardRequestInFlight = false;
 let latestUsageMetrics = null;
 let usageRotationIndex = 0;
+let historyMetric = "cost";
+let historyRange = "day";
 
 function isDevMode() {
     const dashboard = document.getElementById("dashboard");
@@ -26,6 +28,26 @@ function formatClock(now = new Date()) {
 
 function formatGbp(value) {
     return `£${value.toFixed(3)}`;
+}
+
+function formatHistoryCost(value) {
+    return `£${value.toFixed(3)}`;
+}
+
+function formatHistoryKwh(value) {
+    return `${value.toFixed(3)} kWh`;
+}
+
+function getHistoryDisplayValue(rawValue) {
+    if (historyMetric === "cost") {
+        return formatHistoryCost(rawValue);
+    }
+
+    return formatHistoryKwh(rawValue);
+}
+
+function roundAxisMax(value) {
+    return Math.ceil(value * 100) / 100; // round to 2dp
 }
 
 function renderUsageRotation() {
@@ -427,10 +449,215 @@ function setupSettingsModal() {
     });
 }
 
-function init() {
+/* History Modal */
+async function loadHistoryModalPartial() {
+    const root = document.getElementById("history-modal-root");
+    if (!root) return;
+
+    const response = await fetch("/static/partials/history-modal.html", {
+        headers: { Accept: "text/html" },
+        cache: "no-store",
+    });
+
+    if (!response.ok) {
+        throw new Error(`Failed to load history modal partial: HTTP ${response.status}`);
+    }
+
+    root.innerHTML = await response.text();
+}
+
+function openHistoryModal() {
+    const modal = document.getElementById("history-modal");
+    const backdrop = document.getElementById("history-backdrop");
+
+    if (!modal || !backdrop) return;
+
+    modal.removeAttribute("hidden");
+    backdrop.removeAttribute("hidden");
+
+    loadHistoryYesterday();
+}
+
+function closeHistoryModal() {
+    const modal = document.getElementById("history-modal");
+    const backdrop = document.getElementById("history-backdrop");
+
+    if (!modal || !backdrop) return;
+
+    modal.setAttribute("hidden", "");
+    backdrop.setAttribute("hidden", "");
+}
+
+function formatHistoryDateLabel(isoDate) {
+    const date = new Date(`${isoDate}T12:00:00`);
+    return date.toLocaleDateString("en-GB", {
+        weekday: "short",
+        day: "numeric",
+        month: "long",
+        year: "numeric",
+    });
+}
+
+function renderHistoryChart(chartId, axisId, slots, fuel, yMaxId) {
+    const chart = document.getElementById(chartId);
+    const axis = document.getElementById(axisId);
+
+    if (!chart || !axis) return;
+
+    chart.innerHTML = "";
+    axis.innerHTML = "";
+
+    if (!slots || slots.length === 0) {
+        chart.innerHTML = "<div style='color: var(--muted);'>No data</div>";
+        return;
+    }
+
+    const values = slots.map((slot) => slot.consumption ?? 0);
+    const maxValue = roundAxisMax(Math.max(...values, 0.001));
+
+    const yMaxEl = document.getElementById(yMaxId);
+    if (yMaxEl) {
+        yMaxEl.textContent = getHistoryDisplayValue(maxValue);
+    }
+
+    slots.forEach((slot, index) => {
+        const rawValue = slot.consumption ?? 0;
+        const ratio = rawValue / maxValue;
+        const heightPercent = Math.max(6, ratio * 100);
+
+        const bar = document.createElement("button");
+        bar.type = "button";
+        bar.className = `history-bar ${fuel}`;
+        bar.style.height = `${heightPercent}%`;
+
+        const labelValue = getHistoryDisplayValue(rawValue);
+        const start = new Date(slot.interval_start);
+        const end = new Date(slot.interval_end);
+
+        const startText = start.toLocaleTimeString("en-GB", {
+            hour: "2-digit",
+            minute: "2-digit",
+            hour12: false,
+        });
+
+        const endText = end.toLocaleTimeString("en-GB", {
+            hour: "2-digit",
+            minute: "2-digit",
+            hour12: false,
+        });
+
+        bar.dataset.value = labelValue;
+        bar.title = `${labelValue}\n${startText} → ${endText}`;
+        bar.setAttribute("aria-label", `${fuel} ${labelValue}, ${startText} to ${endText}`);
+
+        bar.addEventListener("click", () => {
+            const existing = chart.querySelector(".history-bar.selected");
+            if (existing && existing !== bar) {
+                existing.classList.remove("selected");
+            }
+
+            bar.classList.toggle("selected");
+        });
+
+        chart.appendChild(bar);
+
+        if (start.getMinutes() === 0) {
+            const label = document.createElement("div");
+            label.className = "history-time-label";
+            label.textContent = start.getHours().toString().padStart(2, "0");
+            label.style.left = `${(index / slots.length) * 100}%`;
+            axis.appendChild(label);
+        }
+    });
+}
+
+async function loadHistoryYesterday() {
+    const response = await fetch("/api/history/yesterday", {
+        headers: { Accept: "application/json" },
+        cache: "no-store",
+    });
+
+    if (!response.ok) {
+        throw new Error(`Failed to load history: HTTP ${response.status}`);
+    }
+
+    const data = await response.json();
+
+    const dateLabel = document.getElementById("history-date-label");
+    if (dateLabel && data.electricity?.date) {
+        dateLabel.textContent = formatHistoryDateLabel(data.electricity.date);
+    }
+
+    const electricitySummary = document.getElementById("history-electricity-summary");
+    const gasSummary = document.getElementById("history-gas-summary");
+
+    if (electricitySummary) {
+        electricitySummary.textContent = historyMetric === "cost" ? "Cost" : "kWh";
+    }
+
+    if (gasSummary) {
+        gasSummary.textContent = historyMetric === "cost" ? "Cost" : "kWh";
+    }
+
+    renderHistoryChart(
+        "history-electricity-chart",
+        "history-electricity-axis",
+        data.electricity.slots,
+        "electricity",
+        "electricity-y-max"
+    );
+
+    renderHistoryChart(
+        "history-gas-chart",
+        "history-gas-axis",
+        data.gas.slots,
+        "gas",
+        "gas-y-max"
+    );
+}
+
+function setupHistoryModal() {
+    const historyButton = document.getElementById("history-button");
+    const root = document.getElementById("history-modal-root");
+
+    if (!historyButton || !root) return;
+
+    historyButton.addEventListener("click", openHistoryModal);
+
+    root.addEventListener("click", (event) => {
+        const target = event.target;
+
+        if (!(target instanceof HTMLElement)) return;
+
+        if (
+            target.id === "history-close-button" ||
+            target.id === "history-backdrop"
+        ) {
+            closeHistoryModal();
+        }
+
+        if (target.id === "history-metric-cost") {
+            historyMetric = "cost";
+            target.classList.add("active");
+            document.getElementById("history-metric-kwh")?.classList.remove("active");
+        }
+
+        if (target.id === "history-metric-kwh") {
+            historyMetric = "kwh";
+            target.classList.add("active");
+            document.getElementById("history-metric-cost")?.classList.remove("active");
+        }
+    });
+}
+
+async function init() {
     setupDebugToggle();
     setupSettingsModal();
     updateClock();
+
+    await loadHistoryModalPartial();  // ✅ now valid
+
+    setupHistoryModal();
     loadDashboard();
 
     setInterval(updateClock, 1000);
