@@ -703,6 +703,20 @@ pre {
   font-size: 0.75rem;
 }
 
+.history-card-meta {
+  display: grid;
+  justify-items: end;
+  gap: 2px;
+  text-align: right;
+}
+
+.history-card-total,
+.history-card-standing {
+  font-size: 0.9rem;
+  line-height: 1.1;
+  font-weight: 700;
+}
+
 .history-chart-wrap {
   min-height: 0;
   display: grid;

@@ -27,7 +27,8 @@ function formatClock(now = new Date()) {
 }
 
 function formatGbp(value) {
-    return `£${value.toFixed(3)}`;
+    if (value == null) return "£--";
+    return `£${value.toFixed(2)}`;
 }
 
 function formatHistoryCost(value) {
@@ -48,6 +49,16 @@ function getHistoryDisplayValue(rawValue) {
 
 function roundAxisMax(value) {
     return Math.ceil(value * 100) / 100; // round to 2dp
+}
+
+function getHistorySlotValue(slot) {
+    if (!slot) return 0;
+
+    if (historyMetric === "cost") {
+        return typeof slot.cost_gbp === "number" ? slot.cost_gbp : 0;
+    }
+
+    return typeof slot.consumption_kwh === "number" ? slot.consumption_kwh : 0;
 }
 
 function renderUsageRotation() {
@@ -512,16 +523,19 @@ function renderHistoryChart(chartId, axisId, slots, fuel, yMaxId) {
         return;
     }
 
-    const values = slots.map((slot) => slot.consumption ?? 0);
-    const maxValue = roundAxisMax(Math.max(...values, 0.001));
+    const values = slots.map((slot) => getHistorySlotValue(slot));
+    const maxValue = Math.max(...values, 0.001);
 
     const yMaxEl = document.getElementById(yMaxId);
     if (yMaxEl) {
-        yMaxEl.textContent = getHistoryDisplayValue(maxValue);
+        yMaxEl.textContent =
+            historyMetric === "cost"
+                ? formatHistoryCost(maxValue)
+                : formatHistoryKwh(maxValue);
     }
 
     slots.forEach((slot, index) => {
-        const rawValue = slot.consumption ?? 0;
+        const rawValue = getHistorySlotValue(slot);
         const ratio = rawValue / maxValue;
         const heightPercent = Math.max(6, ratio * 100);
 
@@ -530,7 +544,11 @@ function renderHistoryChart(chartId, axisId, slots, fuel, yMaxId) {
         bar.className = `history-bar ${fuel}`;
         bar.style.height = `${heightPercent}%`;
 
-        const labelValue = getHistoryDisplayValue(rawValue);
+        const labelValue =
+            historyMetric === "cost"
+                ? formatHistoryCost(rawValue)
+                : formatHistoryKwh(rawValue);
+
         const start = new Date(slot.interval_start);
         const end = new Date(slot.interval_end);
 
@@ -599,6 +617,39 @@ async function loadHistoryYesterday() {
         gasSummary.textContent = historyMetric === "cost" ? "Cost" : "kWh";
     }
 
+    const electricityTotal = document.getElementById("history-electricity-total");
+    const electricityStanding = document.getElementById("history-electricity-standing");
+    const gasTotal = document.getElementById("history-gas-total");
+    const gasStanding = document.getElementById("history-gas-standing");
+
+    if (electricityTotal) {
+        electricityTotal.textContent =
+            historyMetric === "cost"
+                ? `Total ${formatGbp(data.electricity?.total_cost_gbp)}`
+                : `Total ${formatHistoryKwh(data.electricity?.total_consumption_kwh)}`;
+    }
+
+    if (electricityStanding) {
+        electricityStanding.textContent =
+            historyMetric === "cost"
+                ? `Standing ${formatGbp(data.electricity?.standing_charge_gbp)}`
+                : "";
+    }
+
+    if (gasTotal) {
+        gasTotal.textContent =
+            historyMetric === "cost"
+                ? `Total ${formatGbp(data.gas?.total_cost_gbp)}`
+                : `Total ${formatHistoryKwh(data.gas?.total_consumption_kwh)}`;
+    }
+
+    if (gasStanding) {
+        gasStanding.textContent =
+            historyMetric === "cost"
+                ? `Standing ${formatGbp(data.gas?.standing_charge_gbp)}`
+                : "";
+    }
+
     renderHistoryChart(
         "history-electricity-chart",
         "history-electricity-axis",
@@ -640,12 +691,14 @@ function setupHistoryModal() {
             historyMetric = "cost";
             target.classList.add("active");
             document.getElementById("history-metric-kwh")?.classList.remove("active");
+            loadHistoryYesterday();
         }
 
         if (target.id === "history-metric-kwh") {
             historyMetric = "kwh";
             target.classList.add("active");
             document.getElementById("history-metric-cost")?.classList.remove("active");
+            loadHistoryYesterday();
         }
     });
 }
