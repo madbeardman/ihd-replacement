@@ -27,7 +27,7 @@ pub fn start_scheduler(
             let hour = now.hour();
             let minute = now.minute();
 
-            let should_run_agile = (hour == 5 || hour == 17) && minute == 0;
+            let should_run_agile = (hour == 4 || hour == 16) && minute == 15;
 
             if should_run_agile {
                 let marker = FetchMarker {
