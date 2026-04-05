@@ -48,6 +48,7 @@ pub struct StoredAgileSlot {
 #[derive(Debug, Clone, Copy, Serialize)]
 #[serde(rename_all = "lowercase")]
 pub enum PriceBand {
+    Negative,
     Cheap,
     Normal,
     Expensive,
@@ -89,7 +90,9 @@ pub struct RollingWindow {
 }
 
 pub fn classify_price_band(price: f64) -> PriceBand {
-    if price < 15.0 {
+    if price < 0.0 {
+        PriceBand::Negative
+    } else if price < 15.0 {
         PriceBand::Cheap
     } else if price < 25.0 {
         PriceBand::Normal

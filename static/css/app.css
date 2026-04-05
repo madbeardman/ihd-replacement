@@ -391,14 +391,13 @@ body {
 .agile-chart-wrap {
   min-height: 0;
   display: grid;
-  grid-template-rows: 1fr 16px;
-  gap: 3px;
+  grid-template-rows: 1fr 12px;
+  gap: 0;
 }
 
 .agile-chart {
   height: 108px;
   display: flex;
-  align-items: end;
   gap: 5px;
   background: transparent;
   border: none;
@@ -406,7 +405,15 @@ body {
   position: relative;
 }
 
-.agile-chart::before {
+.agile-chart-positive-only {
+  align-items: end;
+}
+
+.agile-chart-mixed {
+  align-items: stretch;
+}
+
+.agile-chart-positive-only::before {
   content: "";
   position: absolute;
   left: 0;
@@ -416,20 +423,53 @@ body {
   background: rgba(255, 255, 255, 0.05);
 }
 
-.agile-bar {
+.agile-chart-mixed::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.10);
+}
+
+.agile-bar-wrap {
   flex: 1 1 0;
   min-width: 10px;
-  border-radius: 6px 6px 0 0;
   position: relative;
+  height: 100%;
+}
+
+.agile-bar {
   opacity: 0.95;
   transition:
     transform 0.15s ease,
     opacity 0.15s ease;
 }
 
+.agile-chart-positive-only .agile-bar {
+  position: relative;
+  border-radius: 6px 6px 0 0;
+}
+
+.agile-chart-mixed .agile-bar {
+  position: absolute;
+  left: 0;
+  right: 0;
+}
+
 .agile-bar:hover {
-  transform: translateY(-2px);
   opacity: 1;
+}
+
+.agile-chart-mixed .agile-bar.positive {
+  bottom: 50%;
+  border-radius: 6px 6px 0 0;
+}
+
+.agile-chart-mixed .agile-bar.negative {
+  top: 50%;
+  border-radius: 0 0 6px 6px;
 }
 
 .agile-bar.cheap {
@@ -444,6 +484,11 @@ body {
   background: var(--expensive);
 }
 
+.agile-bar.negative,
+.agile-bar.negative-band {
+  background: #8b5cf6;
+}
+
 .agile-bar.now {
   outline: 2px solid var(--now-outline);
   outline-offset: 2px;
@@ -452,7 +497,6 @@ body {
 .agile-bar::after {
   content: attr(data-price);
   position: absolute;
-  bottom: calc(100% + 4px);
   left: 50%;
   transform: translateX(-50%);
   font-size: 0.72rem;
@@ -463,6 +507,15 @@ body {
   transition: opacity 0.15s ease;
 }
 
+.agile-chart-positive-only .agile-bar::after,
+.agile-chart-mixed .agile-bar.positive::after {
+  bottom: calc(100% + 4px);
+}
+
+.agile-chart-mixed .agile-bar.negative::after {
+  top: calc(100% + 4px);
+}
+
 .agile-bar:hover::after,
 .agile-bar.now::after {
   opacity: 1;
@@ -470,9 +523,10 @@ body {
 
 .agile-time-axis {
   position: relative;
-  height: 16px;
+  height: 12px;
   color: var(--muted);
   font-size: 0.78rem;
+  margin-top: -1px;
 }
 
 .agile-time-label {
@@ -480,6 +534,7 @@ body {
   transform: translateX(-50%);
   white-space: nowrap;
   line-height: 1;
+  top: 0;
 }
 
 /* Debug hidden in device layout */
