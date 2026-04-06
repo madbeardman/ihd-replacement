@@ -524,13 +524,6 @@ body {
   transform: translateY(-2px);
 }
 
-/* .agile-bar.now {
-  outline: 1px solid var(--now-outline);
-  outline-offset: 1px;
-  opacity: 0.50;
-} */
-
-
 /* =========================
    Tooltip
 ========================= */
@@ -716,6 +709,7 @@ pre {
   border-radius: 16px;
   padding: 14px;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+  overflow: hidden;
 }
 
 .history-modal-header {
@@ -782,7 +776,7 @@ pre {
 
 .history-modal-body {
   min-height: 0;
-  overflow: auto;
+  overflow: hidden;
   display: grid;
   grid-template-rows: 1fr 1fr;
   gap: 10px;
