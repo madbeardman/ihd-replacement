@@ -26,6 +26,62 @@ function formatHistoryDateLabel(isoDate) {
     });
 }
 
+function formatDateForApi(date) {
+    return date.toISOString().slice(0, 10);
+}
+
+function parseIsoDateToLocalDate(isoDate) {
+    return new Date(`${isoDate}T12:00:00`);
+}
+
+function getTodayIsoDate() {
+    return formatDateForApi(new Date());
+}
+
+function shiftSelectedDate(days) {
+    if (!state.historySelectedDate) {
+        state.historySelectedDate = getTodayIsoDate();
+    }
+
+    const current = parseIsoDateToLocalDate(state.historySelectedDate);
+    current.setDate(current.getDate() + days);
+    state.historySelectedDate = formatDateForApi(current);
+}
+
+function syncRangeButtons() {
+    document.getElementById("history-range-day")?.classList.toggle(
+        "active",
+        state.historyRange === "day",
+    );
+    document.getElementById("history-range-week")?.classList.toggle(
+        "active",
+        state.historyRange === "week",
+    );
+    document.getElementById("history-range-month")?.classList.toggle(
+        "active",
+        state.historyRange === "month",
+    );
+}
+
+function syncMetricButtons() {
+    document.getElementById("history-metric-cost")?.classList.toggle(
+        "active",
+        state.historyMetric === "cost",
+    );
+    document.getElementById("history-metric-kwh")?.classList.toggle(
+        "active",
+        state.historyMetric === "kwh",
+    );
+}
+
+function updateNavigationButtons() {
+    const nextButton = document.getElementById("history-next-button");
+
+    if (!nextButton || !state.historySelectedDate) return;
+
+    nextButton.disabled = state.historySelectedDate >= getTodayIsoDate();
+}
+
 export async function loadHistoryModalPartial() {
     const root = document.getElementById("history-modal-root");
     if (!root) return;
@@ -48,10 +104,20 @@ export function openHistoryModal() {
 
     if (!modal || !backdrop) return;
 
+    if (!state.historySelectedDate) {
+        const yesterday = new Date();
+        yesterday.setDate(yesterday.getDate() - 1);
+        state.historySelectedDate = formatDateForApi(yesterday);
+    }
+
     modal.removeAttribute("hidden");
     backdrop.removeAttribute("hidden");
 
-    loadHistoryYesterday();
+    syncMetricButtons();
+    syncRangeButtons();
+    updateNavigationButtons();
+
+    loadHistory();
 }
 
 export function closeHistoryModal() {
@@ -141,18 +207,20 @@ function renderHistoryChart(chartId, axisId, slots, fuel, yMaxId) {
     });
 }
 
-export async function loadHistoryYesterday() {
-    const response = await fetch("/api/history/yesterday", {
+async function fetchHistoryDay(isoDate) {
+    const response = await fetch(`/api/history/day?date=${encodeURIComponent(isoDate)}`, {
         headers: { Accept: "application/json" },
         cache: "no-store",
     });
 
     if (!response.ok) {
-        throw new Error(`Failed to load history: HTTP ${response.status}`);
+        throw new Error(`Failed to load history day: HTTP ${response.status}`);
     }
 
-    const data = await response.json();
+    return response.json();
+}
 
+function renderHistoryDay(data) {
     const dateLabel = document.getElementById("history-date-label");
     if (dateLabel && data.electricity?.date) {
         dateLabel.textContent = formatHistoryDateLabel(data.electricity.date);
@@ -219,6 +287,27 @@ export async function loadHistoryYesterday() {
     );
 }
 
+export async function loadHistory() {
+    if (state.historyRange !== "day") {
+        console.warn("Week/month history not implemented yet");
+        return;
+    }
+
+    const isoDate = state.historySelectedDate ?? getTodayIsoDate();
+    const data = await fetchHistoryDay(isoDate);
+
+    renderHistoryDay(data);
+    updateNavigationButtons();
+}
+
+export async function loadHistoryYesterday() {
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    state.historySelectedDate = formatDateForApi(yesterday);
+
+    await loadHistory();
+}
+
 export function setupHistoryModal() {
     const historyButton = document.getElementById("history-button");
     const root = document.getElementById("history-modal-root");
@@ -227,27 +316,62 @@ export function setupHistoryModal() {
 
     historyButton.addEventListener("click", openHistoryModal);
 
-    root.addEventListener("click", (event) => {
+    root.addEventListener("click", async (event) => {
         const target = event.target;
 
         if (!(target instanceof HTMLElement)) return;
 
         if (target.id === "history-close-button" || target.id === "history-backdrop") {
             closeHistoryModal();
+            return;
         }
 
         if (target.id === "history-metric-cost") {
             state.historyMetric = "cost";
-            target.classList.add("active");
-            document.getElementById("history-metric-kwh")?.classList.remove("active");
-            loadHistoryYesterday();
+            syncMetricButtons();
+            await loadHistory();
+            return;
         }
 
         if (target.id === "history-metric-kwh") {
             state.historyMetric = "kwh";
-            target.classList.add("active");
-            document.getElementById("history-metric-cost")?.classList.remove("active");
-            loadHistoryYesterday();
+            syncMetricButtons();
+            await loadHistory();
+            return;
+        }
+
+        if (target.id === "history-range-day") {
+            state.historyRange = "day";
+            syncRangeButtons();
+            await loadHistory();
+            return;
+        }
+
+        if (target.id === "history-range-week") {
+            state.historyRange = "week";
+            syncRangeButtons();
+            return;
+        }
+
+        if (target.id === "history-range-month") {
+            state.historyRange = "month";
+            syncRangeButtons();
+            return;
+        }
+
+        if (target.id === "history-prev-button") {
+            if (state.historyRange === "day") {
+                shiftSelectedDate(-1);
+            }
+            await loadHistory();
+            return;
+        }
+
+        if (target.id === "history-next-button") {
+            if (state.historyRange === "day" && state.historySelectedDate < getTodayIsoDate()) {
+                shiftSelectedDate(1);
+            }
+            await loadHistory();
         }
     });
 }

@@ -220,6 +220,16 @@ fn trim_slots_to_day(mut day_data: StoredConsumptionDay, day: NaiveDate) -> Stor
     day_data
 }
 
+pub fn load_history_for_day(
+    history_dir: &Path,
+    day: NaiveDate,
+) -> Result<YesterdayHistoryResponse, AppError> {
+    Ok(YesterdayHistoryResponse {
+        electricity: load_consumption_day(history_dir, "electricity", day)?,
+        gas: load_consumption_day(history_dir, "gas", day)?,
+    })
+}
+
 fn build_electricity_rate_map(
     agile_dir: &Path,
     day: NaiveDate,
@@ -316,11 +326,20 @@ pub async fn fetch_and_store_yesterday_history(
     dev_mode: bool,
 ) -> Result<(), AppError> {
     let yesterday = Local::now().date_naive() - Duration::days(1);
+    fetch_and_store_history_for_day(history_dir, agile_dir, config, yesterday, dev_mode).await
+}
 
-    let electricity_raw = fetch_electricity_usage_for_day(config, yesterday).await?;
-    let electricity_trimmed = trim_slots_to_day(electricity_raw, yesterday);
+pub async fn fetch_and_store_history_for_day(
+    history_dir: &Path,
+    agile_dir: &Path,
+    config: &OctopusConfig,
+    day: NaiveDate,
+    dev_mode: bool,
+) -> Result<(), AppError> {
+    let electricity_raw = fetch_electricity_usage_for_day(config, day).await?;
+    let electricity_trimmed = trim_slots_to_day(electricity_raw, day);
     let electricity_enriched =
-        enrich_electricity_day_with_costs(electricity_trimmed, agile_dir, yesterday)?;
+        enrich_electricity_day_with_costs(electricity_trimmed, agile_dir, day)?;
     let electricity = finalise_day_totals(
         electricity_enriched,
         config
@@ -338,8 +357,8 @@ pub async fn fetch_and_store_yesterday_history(
         );
     }
 
-    let gas_raw = fetch_gas_usage_for_day(config, yesterday).await?;
-    let gas_trimmed = trim_slots_to_day(gas_raw, yesterday);
+    let gas_raw = fetch_gas_usage_for_day(config, day).await?;
+    let gas_trimmed = trim_slots_to_day(gas_raw, day);
     let gas_enriched = enrich_gas_day_with_costs(gas_trimmed, config);
     let gas = finalise_day_totals(
         gas_enriched,

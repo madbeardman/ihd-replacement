@@ -1,9 +1,20 @@
-use axum::{Json, extract::State, response::Html};
+use axum::{
+    Json,
+    extract::{Query, State},
+    response::Html,
+};
+use chrono::NaiveDate;
+use serde::Deserialize;
 
 use crate::agile::RollingWindow;
 use crate::app_state::AppState;
-use crate::history::{YesterdayHistoryResponse, load_yesterday_history};
+use crate::history::{YesterdayHistoryResponse, load_history_for_day, load_yesterday_history};
 use crate::models::DashboardState;
+
+#[derive(Debug, Deserialize)]
+pub struct HistoryDayQuery {
+    pub date: String,
+}
 
 pub async fn get_dashboard(State(state): State<AppState>) -> Json<DashboardState> {
     let dashboard = state.dashboard.read().await;
@@ -24,6 +35,27 @@ pub async fn get_history_yesterday(
     });
 
     Json(history)
+}
+
+pub async fn get_history_day(
+    State(state): State<AppState>,
+    Query(query): Query<HistoryDayQuery>,
+) -> Result<Json<YesterdayHistoryResponse>, (axum::http::StatusCode, String)> {
+    let day = NaiveDate::parse_from_str(&query.date, "%Y-%m-%d").map_err(|_| {
+        (
+            axum::http::StatusCode::BAD_REQUEST,
+            format!("Invalid date format: {}. Expected YYYY-MM-DD", query.date),
+        )
+    })?;
+
+    let history = load_history_for_day(&state.history_dir, day).map_err(|err| {
+        (
+            axum::http::StatusCode::INTERNAL_SERVER_ERROR,
+            format!("Failed to load history for day: {err}"),
+        )
+    })?;
+
+    Ok(Json(history))
 }
 
 pub async fn index(State(state): State<AppState>) -> Html<String> {

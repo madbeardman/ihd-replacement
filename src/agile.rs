@@ -248,3 +248,52 @@ pub fn stored_day_to_day_slots(day: &StoredAgileDay) -> Vec<DaySlot> {
     slots.sort_by_key(|slot| slot.index);
     slots
 }
+
+pub async fn fetch_agile_rates_for_day(day: NaiveDate) -> Result<AgileApiResponse, AppError> {
+    let period_from = day
+        .and_hms_opt(0, 0, 0)
+        .ok_or("Invalid Agile period_from")?;
+    let period_to = (day + chrono::Duration::days(1))
+        .and_hms_opt(0, 0, 0)
+        .ok_or("Invalid Agile period_to")?;
+
+    let client = reqwest::Client::new();
+
+    let response = client
+        .get(AGILE_URL)
+        .query(&[
+            ("page_size", "150"),
+            (
+                "period_from",
+                &period_from.format("%Y-%m-%dT%H:%M:%S").to_string(),
+            ),
+            (
+                "period_to",
+                &period_to.format("%Y-%m-%dT%H:%M:%S").to_string(),
+            ),
+            ("order_by", "period"),
+        ])
+        .send()
+        .await?
+        .error_for_status()?
+        .json::<AgileApiResponse>()
+        .await?;
+
+    Ok(response)
+}
+
+pub async fn fetch_and_store_agile_for_day(
+    agile_dir: &Path,
+    day: NaiveDate,
+) -> Result<(), AppError> {
+    let api = fetch_agile_rates_for_day(day).await?;
+    let days = build_stored_days(&api);
+
+    for stored_day in &days {
+        if stored_day.date == day.format("%Y-%m-%d").to_string() {
+            save_stored_day(agile_dir, stored_day)?;
+        }
+    }
+
+    Ok(())
+}

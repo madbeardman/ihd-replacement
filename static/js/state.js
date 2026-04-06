@@ -4,4 +4,5 @@ export const state = {
     usageRotationIndex: 0,
     historyMetric: "cost",
     historyRange: "day",
+    historySelectedDate: null,
 };
