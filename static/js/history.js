@@ -38,6 +38,12 @@ function getTodayIsoDate() {
     return formatDateForApi(new Date());
 }
 
+function getYesterdayIsoDate() {
+    const d = new Date();
+    d.setDate(d.getDate() - 1);
+    return formatDateForApi(d);
+}
+
 function shiftSelectedDate(days) {
     if (!state.historySelectedDate) {
         state.historySelectedDate = getTodayIsoDate();
@@ -79,7 +85,7 @@ function updateNavigationButtons() {
 
     if (!nextButton || !state.historySelectedDate) return;
 
-    nextButton.disabled = state.historySelectedDate >= getTodayIsoDate();
+    nextButton.disabled = state.historySelectedDate >= getYesterdayIsoDate();
 }
 
 export async function loadHistoryModalPartial() {
@@ -293,7 +299,13 @@ export async function loadHistory() {
         return;
     }
 
-    const isoDate = state.historySelectedDate ?? getTodayIsoDate();
+    const maxDate = getYesterdayIsoDate();
+
+    if (state.historySelectedDate > maxDate) {
+        state.historySelectedDate = maxDate;
+    }
+
+    const isoDate = state.historySelectedDate ?? getYesterdayIsoDate();
     const data = await fetchHistoryDay(isoDate);
 
     renderHistoryDay(data);
@@ -368,10 +380,14 @@ export function setupHistoryModal() {
         }
 
         if (target.id === "history-next-button") {
-            if (state.historyRange === "day" && state.historySelectedDate < getTodayIsoDate()) {
+            if (
+                state.historyRange === "day" &&
+                state.historySelectedDate < getYesterdayIsoDate()
+            ) {
                 shiftSelectedDate(1);
+                await loadHistory();
             }
-            await loadHistory();
+            return;
         }
     });
 }
