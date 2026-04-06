@@ -13,26 +13,24 @@
     <div class="history-toolbar">
         <div class="history-toggle-group">
             <button class="history-toggle-button active" id="history-metric-cost" type="button">Cost</button>
-            <button class="history-toggle-button" id="history-metric-kwh" type="button">kWh</button>
+            <button class="history-toggle-button" id="history-metric-kwh" type="button" disabled>kWh</button>
         </div>
 
         <div class="history-toggle-group">
             <button class="history-toggle-button active" id="history-range-day" type="button">Day</button>
-            <button class="history-toggle-button" id="history-range-week" type="button" disabled>Week</button>
-            <button class="history-toggle-button" id="history-range-month" type="button" disabled>Month</button>
+            <button class="history-toggle-button" id="history-range-week" type="button">Week</button>
+            <button class="history-toggle-button" id="history-range-month" type="button">Month</button>
         </div>
 
-        <div class="history-nav-group">
-            <button class="history-nav-button" id="history-prev-button" type="button"
-                aria-label="Previous day">‹</button>
-            <button class="history-nav-button" id="history-next-button" type="button" aria-label="Next day">›</button>
-        </div>
+        <button class="history-nav-button" id="history-prev-button" type="button"
+            aria-label="Previous period">‹</button>
+        <button class="history-nav-button" id="history-next-button" type="button" aria-label="Next period">›</button>
     </div>
 
     <div class="history-modal-body">
         <section class="history-card">
             <div class="history-card-header">
-                <h3 class="history-card-title">Electricity per 30 min slot</h3>
+                <h3 class="history-card-title">Electricity</h3>
 
                 <div class="history-card-meta">
                     <div class="history-card-total" id="history-electricity-total">Total £--</div>
@@ -55,7 +53,7 @@
 
         <section class="history-card">
             <div class="history-card-header">
-                <h3 class="history-card-title">Gas per 30 min slot</h3>
+                <h3 class="history-card-title">Gas</h3>
 
                 <div class="history-card-meta">
                     <div class="history-card-total" id="history-gas-total">Total £--</div>

@@ -2,7 +2,7 @@ use std::collections::HashMap;
 use std::fs;
 use std::path::{Path, PathBuf};
 
-use chrono::{Duration, Local, NaiveDate};
+use chrono::{Datelike, Duration, Local, NaiveDate};
 use serde::{Deserialize, Serialize};
 
 use crate::agile::{load_stored_day, stored_day_to_day_slots};
@@ -42,6 +42,38 @@ pub struct StoredConsumptionDay {
 pub struct YesterdayHistoryResponse {
     pub electricity: Option<StoredConsumptionDay>,
     pub gas: Option<StoredConsumptionDay>,
+}
+
+#[derive(Debug, Clone, Serialize)]
+pub struct HistoryDaySummary {
+    pub date: String,
+    pub total_consumption_kwh: f64,
+    pub total_cost_gbp: f64,
+    pub standing_charge_gbp: f64,
+}
+
+#[derive(Debug, Clone, Serialize)]
+pub struct WeeklyFuelHistory {
+    pub total_consumption_kwh: f64,
+    pub total_cost_gbp: f64,
+    pub standing_charge_gbp: f64,
+    pub days: Vec<HistoryDaySummary>,
+}
+
+#[derive(Debug, Clone, Serialize)]
+pub struct WeekHistoryResponse {
+    pub start_date: String,
+    pub end_date: String,
+    pub electricity: WeeklyFuelHistory,
+    pub gas: WeeklyFuelHistory,
+}
+
+#[derive(Debug, Clone, Serialize)]
+pub struct MonthHistoryResponse {
+    pub start_date: String,
+    pub end_date: String,
+    pub electricity: WeeklyFuelHistory,
+    pub gas: WeeklyFuelHistory,
 }
 
 #[derive(Debug, Clone)]
@@ -376,4 +408,109 @@ pub async fn fetch_and_store_history_for_day(
     }
 
     Ok(())
+}
+
+fn empty_day_summary(day: NaiveDate) -> HistoryDaySummary {
+    HistoryDaySummary {
+        date: day.to_string(),
+        total_consumption_kwh: 0.0,
+        total_cost_gbp: 0.0,
+        standing_charge_gbp: 0.0,
+    }
+}
+
+fn build_day_summary(day: NaiveDate, stored: Option<StoredConsumptionDay>) -> HistoryDaySummary {
+    match stored {
+        Some(data) => HistoryDaySummary {
+            date: data.date,
+            total_consumption_kwh: data.total_consumption_kwh.unwrap_or(0.0),
+            total_cost_gbp: data.total_cost_gbp.unwrap_or(0.0),
+            standing_charge_gbp: data.standing_charge_gbp.unwrap_or(0.0),
+        },
+        None => empty_day_summary(day),
+    }
+}
+
+fn build_weekly_fuel_history(days: Vec<HistoryDaySummary>) -> WeeklyFuelHistory {
+    let total_consumption_kwh = days.iter().map(|d| d.total_consumption_kwh).sum::<f64>();
+    let total_cost_gbp = days.iter().map(|d| d.total_cost_gbp).sum::<f64>();
+    let standing_charge_gbp = days.iter().map(|d| d.standing_charge_gbp).sum::<f64>();
+
+    WeeklyFuelHistory {
+        total_consumption_kwh,
+        total_cost_gbp,
+        standing_charge_gbp,
+        days,
+    }
+}
+
+pub fn load_history_for_week(
+    history_dir: &Path,
+    end_day: NaiveDate,
+) -> Result<WeekHistoryResponse, AppError> {
+    let start_day = end_day - Duration::days(6);
+
+    let mut electricity_days = Vec::with_capacity(7);
+    let mut gas_days = Vec::with_capacity(7);
+
+    for offset in 0..7 {
+        let day = start_day + Duration::days(offset);
+
+        let electricity = load_consumption_day(history_dir, "electricity", day)?;
+        let gas = load_consumption_day(history_dir, "gas", day)?;
+
+        electricity_days.push(build_day_summary(day, electricity));
+        gas_days.push(build_day_summary(day, gas));
+    }
+
+    Ok(WeekHistoryResponse {
+        start_date: start_day.to_string(),
+        end_date: end_day.to_string(),
+        electricity: build_weekly_fuel_history(electricity_days),
+        gas: build_weekly_fuel_history(gas_days),
+    })
+}
+
+pub fn load_history_for_month(
+    history_dir: &Path,
+    anchor_day: NaiveDate,
+) -> Result<MonthHistoryResponse, AppError> {
+    let start_day = anchor_day.with_day(1).ok_or("Invalid month start date")?;
+
+    let next_month_start = if anchor_day.month() == 12 {
+        NaiveDate::from_ymd_opt(anchor_day.year() + 1, 1, 1).ok_or("Invalid next month date")?
+    } else {
+        NaiveDate::from_ymd_opt(anchor_day.year(), anchor_day.month() + 1, 1)
+            .ok_or("Invalid next month date")?
+    };
+
+    let calendar_end_day = next_month_start - Duration::days(1);
+    let yesterday = Local::now().date_naive() - Duration::days(1);
+    let end_day =
+        if anchor_day.year() == yesterday.year() && anchor_day.month() == yesterday.month() {
+            calendar_end_day.min(yesterday)
+        } else {
+            calendar_end_day
+        };
+
+    let mut electricity_days = Vec::new();
+    let mut gas_days = Vec::new();
+
+    let mut current_day = start_day;
+    while current_day <= end_day {
+        let electricity = load_consumption_day(history_dir, "electricity", current_day)?;
+        let gas = load_consumption_day(history_dir, "gas", current_day)?;
+
+        electricity_days.push(build_day_summary(current_day, electricity));
+        gas_days.push(build_day_summary(current_day, gas));
+
+        current_day += Duration::days(1);
+    }
+
+    Ok(MonthHistoryResponse {
+        start_date: start_day.to_string(),
+        end_date: end_day.to_string(),
+        electricity: build_weekly_fuel_history(electricity_days),
+        gas: build_weekly_fuel_history(gas_days),
+    })
 }

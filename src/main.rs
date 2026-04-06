@@ -1,7 +1,7 @@
 use std::path::PathBuf;
 use std::sync::Arc;
 
-use axum::{Router, routing::get};
+use axum::{routing::get, Router};
 use dotenvy::dotenv;
 use tokio::sync::RwLock;
 use tower_http::services::ServeDir;
@@ -9,7 +9,8 @@ use tower_http::services::ServeDir;
 use agile_fetcher::app_state::AppState;
 use agile_fetcher::dashboard::{fetch_and_store_latest_agile, load_dashboard_state};
 use agile_fetcher::handlers::{
-    get_agile, get_dashboard, get_history_day, get_history_yesterday, index,
+    get_agile, get_dashboard, get_history_day, get_history_month, get_history_week,
+    get_history_yesterday, index,
 };
 use agile_fetcher::history;
 use agile_fetcher::home_assistant::load_ha_config;
@@ -70,6 +71,8 @@ async fn main() {
         .route("/api/agile", get(get_agile))
         .route("/api/history/yesterday", get(get_history_yesterday))
         .route("/api/history/day", get(get_history_day))
+        .route("/api/history/week", get(get_history_week))
+        .route("/api/history/month", get(get_history_month))
         .route("/", get(index))
         .nest_service("/static", ServeDir::new("static"))
         .with_state(state);
@@ -88,6 +91,8 @@ async fn main() {
         println!("History API:   disabled (missing Octopus config)");
     }
     println!("History Day:   http://0.0.0.0:3000/api/history/day?date=2026-04-01");
+    println!("History Week:  http://0.0.0.0:3000/api/history/week?date=2026-04-01");
+    println!("History Month: http://0.0.0.0:3000/api/history/month?date=2026-04-01");
     println!(
         "Logging:       {}",
         if ha_config.dev_mode {
