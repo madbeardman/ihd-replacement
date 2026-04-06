@@ -3,11 +3,12 @@ use std::path::Path;
 use chrono::{Local, Timelike};
 
 use crate::agile::{
-    RollingSlot, RollingWindow, build_rolling_window, build_stored_days, fetch_latest_agile_rates,
-    load_stored_day, save_stored_day, stored_day_to_day_slots,
+    build_rolling_window, build_stored_days, fetch_latest_agile_rates, get_agile_window_slots,
+    load_stored_day, save_stored_day, stored_day_to_day_slots, RollingSlot, RollingWindow,
 };
+
 use crate::home_assistant::{
-    HaConfig, LiveState, extract_live_state, fetch_all_states, is_appliance_running,
+    extract_live_state, fetch_all_states, is_appliance_running, HaConfig, LiveState,
 };
 use crate::models::{
     ApplianceRecommendation, ApplianceRecommendations, DashboardState, UsageRotationMetrics,
@@ -89,7 +90,12 @@ pub fn load_rolling_window_from_store(agile_dir: &Path) -> Result<RollingWindow,
     let now_local = Local::now();
     let current_slot_index = (now_local.hour() * 2 + now_local.minute() / 30) as u8;
 
-    let rolling_slots = build_rolling_window(&today_slots, &tomorrow_slots, current_slot_index);
+    let rolling_slots = build_rolling_window(
+        &today_slots,
+        &tomorrow_slots,
+        current_slot_index,
+        get_agile_window_slots(),
+    );
 
     Ok(RollingWindow {
         current_slot_index,
@@ -200,5 +206,9 @@ pub fn get_poll_interval_seconds() -> u64 {
     let now = Local::now();
     let hour = now.hour();
 
-    if (7..22).contains(&hour) { 10 } else { 20 }
+    if (7..22).contains(&hour) {
+        10
+    } else {
+        20
+    }
 }

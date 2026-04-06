@@ -9,6 +9,7 @@ use serde::{Deserialize, Serialize};
 type AppError = Box<dyn std::error::Error + Send + Sync>;
 
 const AGILE_URL: &str = "https://api.octopus.energy/v1/products/AGILE-24-10-01/electricity-tariffs/E-1R-AGILE-24-10-01-M/standard-unit-rates/";
+const DEFAULT_ROLLING_WINDOW_SLOTS: usize = 24;
 
 #[derive(Debug, Deserialize)]
 pub struct AgileApiResponse {
@@ -105,14 +106,15 @@ pub fn build_rolling_window(
     today_slots: &[DaySlot],
     tomorrow_slots: &[DaySlot],
     current_slot_index: u8,
+    max_slots: usize,
 ) -> Vec<RollingSlot> {
-    let mut rolling: Vec<RollingSlot> = Vec::with_capacity(48);
+    let mut rolling: Vec<RollingSlot> = Vec::with_capacity(max_slots);
 
     for slot in today_slots
         .iter()
         .filter(|slot| slot.index >= current_slot_index)
     {
-        if rolling.len() >= 48 {
+        if rolling.len() >= max_slots {
             break;
         }
 
@@ -129,7 +131,7 @@ pub fn build_rolling_window(
     }
 
     for slot in tomorrow_slots {
-        if rolling.len() >= 48 {
+        if rolling.len() >= max_slots {
             break;
         }
 
@@ -296,4 +298,16 @@ pub async fn fetch_and_store_agile_for_day(
     }
 
     Ok(())
+}
+
+pub fn get_agile_window_slots() -> usize {
+    match std::env::var("AGILE_WINDOW_SLOTS")
+        .ok()
+        .and_then(|v| v.parse::<usize>().ok())
+    {
+        Some(24) => 24,
+        Some(36) => 36,
+        Some(48) => 48,
+        _ => DEFAULT_ROLLING_WINDOW_SLOTS,
+    }
 }
