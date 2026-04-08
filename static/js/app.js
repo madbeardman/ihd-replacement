@@ -1,14 +1,17 @@
 import { setupDebugToggle, loadDashboard, updateClock, advanceUsageRotation } from "./dashboard.js";
-import { setupSettingsModal } from "./settings.js";
-import { loadHistoryModalPartial, setupHistoryModal } from "./history.js";
+import { setupSettingsModal, loadSettingsModalPartial } from "./settings.js";
+import { loadHistoryModalPartial } from "./history.js";
 
 async function init() {
     setupDebugToggle();
-    setupSettingsModal();
     updateClock();
 
     await loadHistoryModalPartial();
-    setupHistoryModal();
+    await loadSettingsModalPartial();
+
+    setupSettingsModal(async () => {
+        await loadDashboard();
+    });
 
     await loadDashboard();
 

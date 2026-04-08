@@ -8,15 +8,22 @@ use serde::Deserialize;
 
 use crate::agile::RollingWindow;
 use crate::app_state::AppState;
+use crate::dashboard::load_dashboard_state;
 use crate::history::{
     load_history_for_day, load_history_for_month, load_history_for_week, load_yesterday_history,
     MonthHistoryResponse, WeekHistoryResponse, YesterdayHistoryResponse,
 };
 use crate::models::DashboardState;
+use crate::settings::{load_settings, save_settings, AppSettings};
 
 #[derive(Debug, Deserialize)]
 pub struct HistoryDayQuery {
     pub date: String,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct UpdateSettingsRequest {
+    pub agile_window_slots: usize,
 }
 
 pub async fn get_dashboard(State(state): State<AppState>) -> Json<DashboardState> {
@@ -27,6 +34,49 @@ pub async fn get_dashboard(State(state): State<AppState>) -> Json<DashboardState
 pub async fn get_agile(State(state): State<AppState>) -> Json<RollingWindow> {
     let dashboard = state.dashboard.read().await;
     Json(dashboard.agile.clone())
+}
+
+pub async fn get_settings() -> Result<Json<AppSettings>, (axum::http::StatusCode, String)> {
+    let settings = load_settings().map_err(|err| {
+        (
+            axum::http::StatusCode::INTERNAL_SERVER_ERROR,
+            format!("Failed to load settings: {err}"),
+        )
+    })?;
+
+    Ok(Json(settings))
+}
+
+pub async fn update_settings(
+    State(state): State<AppState>,
+    Json(payload): Json<UpdateSettingsRequest>,
+) -> Result<Json<AppSettings>, (axum::http::StatusCode, String)> {
+    let settings = AppSettings {
+        agile_window_slots: payload.agile_window_slots,
+    };
+
+    let saved = save_settings(&settings).map_err(|err| {
+        (
+            axum::http::StatusCode::INTERNAL_SERVER_ERROR,
+            format!("Failed to save settings: {err}"),
+        )
+    })?;
+
+    let refreshed_dashboard = load_dashboard_state(&state.agile_dir, &state.ha_config)
+        .await
+        .map_err(|err| {
+            (
+                axum::http::StatusCode::INTERNAL_SERVER_ERROR,
+                format!("Failed to rebuild dashboard after settings save: {err}"),
+            )
+        })?;
+
+    {
+        let mut dashboard = state.dashboard.write().await;
+        *dashboard = refreshed_dashboard;
+    }
+
+    Ok(Json(saved))
 }
 
 pub async fn get_history_yesterday(

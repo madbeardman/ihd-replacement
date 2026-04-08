@@ -3,13 +3,13 @@ use std::fmt;
 use std::fs;
 use std::path::{Path, PathBuf};
 
+use crate::settings;
 use chrono::{DateTime, Local, NaiveDate, Timelike, Utc};
 use serde::{Deserialize, Serialize};
 
 type AppError = Box<dyn std::error::Error + Send + Sync>;
 
 const AGILE_URL: &str = "https://api.octopus.energy/v1/products/AGILE-24-10-01/electricity-tariffs/E-1R-AGILE-24-10-01-M/standard-unit-rates/";
-const DEFAULT_ROLLING_WINDOW_SLOTS: usize = 24;
 
 #[derive(Debug, Deserialize)]
 pub struct AgileApiResponse {
@@ -301,13 +301,5 @@ pub async fn fetch_and_store_agile_for_day(
 }
 
 pub fn get_agile_window_slots() -> usize {
-    match std::env::var("AGILE_WINDOW_SLOTS")
-        .ok()
-        .and_then(|v| v.parse::<usize>().ok())
-    {
-        Some(24) => 24,
-        Some(36) => 36,
-        Some(48) => 48,
-        _ => DEFAULT_ROLLING_WINDOW_SLOTS,
-    }
+    settings::get_agile_window_slots()
 }

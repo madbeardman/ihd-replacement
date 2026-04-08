@@ -961,3 +961,76 @@ pre {
 .history-chart-wrap {
   flex: 1;
 }
+
+/* Settings */
+.settings-field-label {
+  display: block;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--text);
+  margin-top: 6px;
+  margin-bottom: 6px;
+}
+
+.settings-select {
+  width: 100%;
+  height: 36px;
+  border: 1px solid var(--panel-border);
+  border-radius: 10px;
+  background: var(--panel-soft);
+  color: var(--text);
+  font-size: 0.9rem;
+  padding: 0 10px;
+}
+
+.settings-save-button {
+  min-width: 88px;
+  height: 36px;
+  border: 1px solid var(--panel-border);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.12);
+  color: var(--text);
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 0 14px;
+}
+
+.settings-save-button:active,
+.settings-close-button:active {
+  transform: scale(0.98);
+}
+
+.settings-modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 8px;
+}
+
+.settings-segmented {
+  display: flex;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.settings-segment {
+  flex: 1;
+  height: 36px;
+  border-radius: 10px;
+  border: 1px solid var(--panel-border);
+  background: var(--panel-soft);
+  color: var(--text);
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.settings-segment.active {
+  background: rgba(255, 255, 255, 0.16);
+  border-color: rgba(255, 255, 255, 0.25);
+}
+
+.settings-segment:active {
+  transform: scale(0.96);
+}

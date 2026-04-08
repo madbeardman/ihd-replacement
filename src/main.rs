@@ -10,15 +10,18 @@ use agile_fetcher::app_state::AppState;
 use agile_fetcher::dashboard::{fetch_and_store_latest_agile, load_dashboard_state};
 use agile_fetcher::handlers::{
     get_agile, get_dashboard, get_history_day, get_history_month, get_history_week,
-    get_history_yesterday, index,
+    get_history_yesterday, get_settings, index, update_settings,
 };
 use agile_fetcher::history;
 use agile_fetcher::home_assistant::load_ha_config;
 use agile_fetcher::scheduler::{start_home_assistant_polling, start_scheduler};
+use agile_fetcher::settings;
 
 #[tokio::main]
 async fn main() {
     dotenv().ok();
+
+    settings::ensure_settings_file().expect("Failed to initialise settings file");
 
     let agile_dir = PathBuf::from("data/agile");
     let history_dir = PathBuf::from("data/history");
@@ -55,6 +58,8 @@ async fn main() {
     let state = AppState {
         dashboard: Arc::new(RwLock::new(dashboard)),
         history_dir: history_dir.clone(),
+        agile_dir: agile_dir.clone(),
+        ha_config: ha_config.clone(),
     };
 
     start_home_assistant_polling(state.clone(), ha_config.clone());
@@ -69,6 +74,7 @@ async fn main() {
     let app = Router::new()
         .route("/api/dashboard", get(get_dashboard))
         .route("/api/agile", get(get_agile))
+        .route("/api/settings", get(get_settings).post(update_settings))
         .route("/api/history/yesterday", get(get_history_yesterday))
         .route("/api/history/day", get(get_history_day))
         .route("/api/history/week", get(get_history_week))
@@ -85,6 +91,7 @@ async fn main() {
     println!("Frontend:      http://0.0.0.0:3000");
     println!("Dashboard API: http://0.0.0.0:3000/api/dashboard");
     println!("Agile API:     http://0.0.0.0:3000/api/agile");
+    println!("Settings API:  http://0.0.0.0:3000/api/settings");
     if octopus_config.is_some() {
         println!("History API:   http://0.0.0.0:3000/api/history/yesterday");
     } else {
