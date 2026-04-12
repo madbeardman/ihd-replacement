@@ -140,18 +140,6 @@ data/
 
 
 
-## 🔌 API Endpoints
-
-| Endpoint                    | Description                     |
-|----------------------------|--------------------------------|
-| `/api/dashboard`           | Full dashboard state           |
-| `/api/agile`               | Agile rolling window           |
-| `/api/settings` (GET/POST) | Load / update settings         |
-| `/api/history/day`         | Day history                    |
-| `/api/history/week`        | Week history                   |
-| `/api/history/month`       | Month history                  |
-
-
 ## 💾 Historical Usage Data
 
 The dashboard supports historical energy usage (day, week, and month views),
@@ -223,6 +211,22 @@ cargo run --bin backfill_history -- 90
 
 This gives you **3 months of history**, which is enough to make the history
 charts immediately useful without long fetch times.
+
+
+
+## 🔌 API Endpoints
+
+| Endpoint                    | Description                     |
+|----------------------------|--------------------------------|
+| `/api/dashboard`           | Full dashboard state           |
+| `/api/agile`               | Agile rolling window           |
+| `/api/settings` (GET/POST) | Load / update settings         |
+| `/api/history/day`         | Day history                    |
+| `/api/history/week`        | Week history                   |
+| `/api/history/month`       | Month history                  |
+
+
+
 
 
 ## 🚀 Roadmap
