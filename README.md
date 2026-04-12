@@ -69,8 +69,8 @@ Home Assistant  →  Rust Backend  →  Web UI
 ### 1. Clone the project
 
 ```bash
-git clone <your-repo>
-cd <your-repo>
+git clone https://github.com/madbeardman/ihd-replacement
+cd ihd-replacement
 ```
 
 
@@ -238,7 +238,9 @@ charts immediately useful without long fetch times.
 - Cost forecasting (today / tomorrow projections)  
 - Notifications / companion app  
 - Advanced caching & performance tuning  
-
+- Demo Mode  
+  Generate consistent, realistic sample data (Agile, usage, solar, appliances)  
+  to support screenshots, testing, and UI development without live dependencies
 
 
 ## 💡 Philosophy
