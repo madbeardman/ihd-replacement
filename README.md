@@ -81,7 +81,7 @@ Create a `.env` file:
 HOME_ASSISTANT_URL=http://homeassistant.local:8123
 HOME_ASSISTANT_TOKEN=your_long_lived_access_token_here
 
-OCTOPUS_API_KEY=sk_live_XXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+OCTOPUS_API_KEY=your_sk_live_api_key_lives_here
 OCTOPUS_ELECTRICITY_MPAN=your_mpan_lives_here
 OCTOPUS_ELECTRICITY_SERIAL=your_electricity_meter_serial_number_lives_here
 OCTOPUS_ELECTRICITY_STANDING_CHARGE_P_PER_DAY=your_electricity_standing_charge_lives_here
