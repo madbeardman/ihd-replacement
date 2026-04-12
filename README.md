@@ -28,7 +28,9 @@ Built with:
 - Agile pricing chart (adaptive window size)  
 - Auto-refresh every 10 seconds  
 
+## 📸 Dashboard Preview
 
+![Home Energy Dashboard](docs/images/dashboard-main.png)
 
 ### 📊 History View
 - Day view (30-minute slots)  
