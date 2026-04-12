@@ -80,6 +80,17 @@ Create a `.env` file:
 ```env
 HOME_ASSISTANT_URL=http://homeassistant.local:8123
 HOME_ASSISTANT_TOKEN=your_long_lived_access_token_here
+
+OCTOPUS_API_KEY=sk_live_XXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+OCTOPUS_ELECTRICITY_MPAN=your_mpan_lives_here
+OCTOPUS_ELECTRICITY_SERIAL=your_electricity_meter_serial_number_lives_here
+OCTOPUS_ELECTRICITY_STANDING_CHARGE_P_PER_DAY=your_electricity_standing_charge_lives_here
+OCTOPUS_GAS_MPRN=your_gas_meter_mprn_lives_here
+OCTOPUS_GAS_SERIAL=your_gas_meter_serial_number_lives_here
+OCTOPUS_GAS_UNIT_RATE_P_PER_KWH=your_gas_per_kilowatt_charge_lives_here
+OCTOPUS_GAS_STANDING_CHARGE_P_PER_DAY=your_gas_standing_charge_lives_here
+OCTOPUS_GAS_CORRECTION_FACTOR=1.02264
+OCTOPUS_GAS_CALORIFIC_VALUE=39.1
 ```
 
 
@@ -140,6 +151,78 @@ data/
 | `/api/history/week`        | Week history                   |
 | `/api/history/month`       | Month history                  |
 
+
+## 💾 Historical Usage Data
+
+The dashboard supports historical energy usage (day, week, and month views),
+powered by data from the Octopus Energy API.
+
+By default, only recent data (e.g. yesterday) is fetched automatically.  
+To populate a longer history, you can run a manual backfill.
+
+
+
+### 🔄 Backfilling History
+
+You can fetch historical usage data using the included CLI tool:
+
+```bash
+cargo run --bin backfill_history -- 184
+```
+
+This will download **184 days (~6 months)** of historical data and store it
+locally.
+
+
+
+### 📁 Where Data Is Stored
+
+All historical data is saved as JSON files under:
+
+```
+data/history/
+```
+
+These files are then used by the dashboard to render:
+
+- 📅 Daily usage (30-minute slots)
+- 📊 Weekly summaries
+- 📈 Monthly summaries
+
+
+
+### 🖥️ Where to Run It
+
+You have two options:
+
+**Option A — Run on the IHD device (recommended)**
+- Run the command directly on your Raspberry Pi / IHD
+- Data is immediately available to the dashboard
+
+**Option B — Run on another machine**
+- Run locally (e.g. laptop/desktop)
+- Copy the resulting `data/history/` folder to the IHD device
+
+
+
+### ⚠️ Notes
+
+- Requires valid Octopus API credentials (configured in your environment)
+- Backfilling large ranges may take a little time due to API limits
+- Existing files will be reused where possible to avoid unnecessary re-fetching
+
+
+
+### 🚀 Tip
+
+A good starting point is:
+
+```bash
+cargo run --bin backfill_history -- 90
+```
+
+This gives you **3 months of history**, which is enough to make the history
+charts immediately useful without long fetch times.
 
 
 ## 🚀 Roadmap

@@ -261,24 +261,3 @@ export async function loadDashboard() {
         state.dashboardRequestInFlight = false;
     }
 }
-
-export function setupDebugToggle() {
-    const debugToggle = document.getElementById("debug-toggle");
-    if (!debugToggle) return;
-
-    debugToggle.addEventListener("click", () => {
-        const debug = document.getElementById("debug");
-        const button = document.getElementById("debug-toggle");
-        const isHidden = debug?.hasAttribute("hidden");
-
-        if (!debug || !button) return;
-
-        if (isHidden) {
-            debug.removeAttribute("hidden");
-            button.textContent = "Hide raw JSON";
-        } else {
-            debug.setAttribute("hidden", "");
-            button.textContent = "Show raw JSON";
-        }
-    });
-}

@@ -75,7 +75,7 @@ pub fn extract_live_state(states: &[HaState]) -> LiveState {
 }
 
 pub fn is_appliance_running(power_w: Option<f64>) -> bool {
-    power_w.unwrap_or(0.0) > 10.0
+    power_w.unwrap_or(0.0) > 2.0
 }
 
 pub fn log_dev(config: &HaConfig, message: impl AsRef<str>) {
