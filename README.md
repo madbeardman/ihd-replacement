@@ -81,7 +81,7 @@ Create a `.env` file:
 
 ```env
 HOME_ASSISTANT_URL=http://homeassistant.local:8123
-HOME_ASSISTANT_TOKEN=your_long_lived_access_token_here
+HOME_ASSISTANT_TOKEN=your_ha_long_lived_access_token_here
 
 OCTOPUS_API_KEY=your_sk_live_api_key_lives_here
 OCTOPUS_ELECTRICITY_MPAN=your_mpan_lives_here
@@ -95,7 +95,31 @@ OCTOPUS_GAS_CORRECTION_FACTOR=1.02264
 OCTOPUS_GAS_CALORIFIC_VALUE=39.1
 ```
 
+## 🔑 Home Assistant Token
 
+To connect the dashboard to Home Assistant, you’ll need a **Long-Lived Access
+Token**.
+
+You can create one from your Home Assistant profile:
+
+1. Open Home Assistant  
+2. Go to **Profile** (bottom left corner)  
+3. Scroll to **Long-Lived Access Tokens**  
+4. Click **Create Token** and copy the value  
+
+Add this token to your `.env` file, replacing
+`your_ha_long_lived_access_token_here` with the newly created token.
+
+> ⚠️ **Security Note**
+> 
+> Your Home Assistant Long-Lived Access Token provides full access to your Home
+> Assistant instance.
+> 
+> - **Never share this token publicly** - **Do not commit it to GitHub or
+> version control** - Store it securely in your `.env` file only
+> 
+> If you believe your token has been exposed, revoke it immediately from your
+> Home Assistant profile and generate a new one.
 
 ### 3. Run backend
 
