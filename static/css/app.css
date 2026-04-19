@@ -149,6 +149,13 @@ body {
   overflow: visible;
 }
 
+.icon-currency {
+  font-size: 1.35rem;
+  font-weight: 600; /* slightly less bold than default */
+  opacity: 0.9;
+  transform: translateY(2px);
+}
+
 .poll-indicator {
   width: 14px;
   height: 14px;
