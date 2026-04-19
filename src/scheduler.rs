@@ -8,9 +8,9 @@ use crate::dashboard::{
     build_appliance_recommendations, build_usage_rotation_metrics, fetch_and_store_latest_agile,
     get_poll_interval_seconds, load_dashboard_state,
 };
-use crate::history::{OctopusConfig, fetch_and_store_yesterday_history};
-use crate::home_assistant::{HaConfig, LiveState, extract_live_state, fetch_all_states, log_dev};
-use crate::models::FetchMarker;
+use crate::history::{fetch_and_store_yesterday_history, OctopusConfig};
+use crate::home_assistant::{extract_live_state, fetch_all_states, log_dev, HaConfig, LiveState};
+use crate::models::{DeviceCostSummary, FetchMarker, TopCostDevices};
 
 pub fn start_scheduler(
     state: AppState,
@@ -111,6 +111,10 @@ pub fn start_home_assistant_polling(state: AppState, ha_config: HaConfig) {
                         dishwasher_power_w: None,
                         washing_machine_power_w: None,
                         tumble_dryer_power_w: None,
+                        device_costs: DeviceCostSummary {
+                            current: TopCostDevices { items: vec![] },
+                            today: TopCostDevices { items: vec![] },
+                        },
                     }
                 }
             };

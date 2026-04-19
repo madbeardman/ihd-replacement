@@ -11,7 +11,8 @@ use crate::home_assistant::{
     extract_live_state, fetch_all_states, is_appliance_running, HaConfig, LiveState,
 };
 use crate::models::{
-    ApplianceRecommendation, ApplianceRecommendations, DashboardState, UsageRotationMetrics,
+    ApplianceRecommendation, ApplianceRecommendations, DashboardState, DeviceCostSummary,
+    TopCostDevices, UsageRotationMetrics,
 };
 
 type AppError = Box<dyn std::error::Error + Send + Sync>;
@@ -54,6 +55,10 @@ pub async fn load_dashboard_state(
                 dishwasher_power_w: None,
                 washing_machine_power_w: None,
                 tumble_dryer_power_w: None,
+                device_costs: DeviceCostSummary {
+                    current: TopCostDevices { items: vec![] },
+                    today: TopCostDevices { items: vec![] },
+                },
             }
         }
     };

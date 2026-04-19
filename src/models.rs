@@ -41,3 +41,22 @@ pub struct ApplianceRecommendations {
     pub washing_machine: ApplianceRecommendation,
     pub tumble_dryer: ApplianceRecommendation,
 }
+
+use serde::Serialize;
+
+#[derive(Debug, Clone, Serialize)]
+pub struct CostDeviceItem {
+    pub name: String,
+    pub cost_gbp: f64,
+}
+
+#[derive(Debug, Clone, Serialize)]
+pub struct TopCostDevices {
+    pub items: Vec<CostDeviceItem>,
+}
+
+#[derive(Debug, Clone, Serialize)]
+pub struct DeviceCostSummary {
+    pub current: TopCostDevices,
+    pub today: TopCostDevices,
+}
