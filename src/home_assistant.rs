@@ -75,13 +75,6 @@ fn empty_top_cost_devices() -> TopCostDevices {
     TopCostDevices { items: Vec::new() }
 }
 
-fn empty_device_cost_summary() -> DeviceCostSummary {
-    DeviceCostSummary {
-        current: empty_top_cost_devices(),
-        today: empty_top_cost_devices(),
-    }
-}
-
 pub fn load_ha_config() -> Result<HaConfig, Box<dyn std::error::Error>> {
     let base_url = std::env::var("HA_BASE_URL")?;
     let token = std::env::var("HA_TOKEN")?;
