@@ -15,6 +15,7 @@ rsync -avz \
   --exclude .git \
   --exclude node_modules \
   --exclude .env \
+  --exclude deploy-pi.sh \
   ./ "${PI_HOST}:${PI_APP_DIR}"
 
 echo "==> Handling .env file..."
@@ -40,10 +41,9 @@ ssh "${PI_HOST}" "
   cargo build --release
 "
 
-echo "==> Restarting ihd service..."
+echo "==> Restarting IHD device..."
 ssh "${PI_HOST}" "
-  sudo systemctl restart ihd &&
-  sudo systemctl status ihd --no-pager
+  sudo reboot
 "
 
 echo "==> Done."

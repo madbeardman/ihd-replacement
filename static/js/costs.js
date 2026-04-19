@@ -82,7 +82,13 @@ function renderCostUsageList(items, mode) {
 
         const barFill = document.createElement("div");
         barFill.className = `cost-usage-bar-fill cost-usage-bar-${mode}`;
-        barFill.style.width = `${Math.max((item.cost_gbp / maxValue) * 100, 6)}%`;
+        // barFill.style.width = `${Math.max((item.cost_gbp / maxValue) * 100, 6)}%`;
+
+        barFill.style.width = "0%";
+
+        requestAnimationFrame(() => {
+            barFill.style.width = `${Math.max((item.cost_gbp / maxValue) * 100, 4)}%`;
+        });
 
         barTrack.appendChild(barFill);
 

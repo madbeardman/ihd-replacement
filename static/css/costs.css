@@ -147,8 +147,17 @@
   align-items: center;
 }
 
+.cost-usage-total-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 2px;
+}
+
 .cost-usage-total {
-  font-size: 1rem;
-  font-weight: 700;
+  font-size: 1.1rem;
+  font-weight: 800;
   color: var(--text);
+  line-height: 1;
 }
