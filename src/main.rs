@@ -1,9 +1,11 @@
 use std::path::PathBuf;
 use std::sync::Arc;
 
+use axum::http::Method;
 use axum::{routing::get, Router};
 use dotenvy::dotenv;
 use tokio::sync::RwLock;
+use tower_http::cors::{Any, CorsLayer};
 use tower_http::services::ServeDir;
 
 use agile_fetcher::app_state::AppState;
@@ -71,6 +73,11 @@ async fn main() {
         octopus_config.clone(),
     );
 
+    let cors = CorsLayer::new()
+        .allow_origin(Any)
+        .allow_methods([Method::GET, Method::POST, Method::OPTIONS])
+        .allow_headers(Any);
+
     let app = Router::new()
         .route("/api/dashboard", get(get_dashboard))
         .route("/api/agile", get(get_agile))
@@ -81,7 +88,8 @@ async fn main() {
         .route("/api/history/month", get(get_history_month))
         .route("/", get(index))
         .nest_service("/static", ServeDir::new("static"))
-        .with_state(state);
+        .with_state(state.clone())
+        .layer(cors);
 
     let listener = tokio::net::TcpListener::bind("0.0.0.0:3000")
         .await
