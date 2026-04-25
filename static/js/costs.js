@@ -35,20 +35,39 @@ function getCostItems(data, range) {
         .sort((a, b) => b.cost_gbp - a.cost_gbp);
 }
 
+function getRangeLabel(range) {
+    switch (range) {
+        case "current":
+            return "Current";
+        case "yesterday":
+            return "Yesterday";
+        case "month":
+            return "Month";
+        case "today":
+        default:
+            return "Today";
+    }
+}
+
 function renderCostUsageList(items, mode) {
     const list = document.getElementById("cost-usage-list");
+    const totalEl = document.getElementById("cost-usage-total");
+
     if (!list) return;
 
     list.innerHTML = "";
 
     if (!items.length) {
+        if (totalEl) {
+            totalEl.textContent = "Total £0.00";
+        }
+
         list.innerHTML = `<div class="cost-usage-empty">No cost data available</div>`;
         return;
     }
 
     const total = items.reduce((sum, item) => sum + item.cost_gbp, 0);
 
-    const totalEl = document.getElementById("cost-usage-total");
     if (totalEl) {
         totalEl.textContent = `Total ${formatCostValue(total)}`;
     }
@@ -72,7 +91,9 @@ function renderCostUsageList(items, mode) {
 
         const value = document.createElement("div");
         value.className = "cost-usage-value";
-        value.textContent = formatCostValue(item.cost_gbp);
+        const percentage = (item.cost_gbp / total) * 100;
+
+        value.textContent = `${formatCostValue(item.cost_gbp)} (${percentage.toFixed(0)}%)`;
 
         header.appendChild(name);
         header.appendChild(value);
@@ -82,8 +103,6 @@ function renderCostUsageList(items, mode) {
 
         const barFill = document.createElement("div");
         barFill.className = `cost-usage-bar-fill cost-usage-bar-${mode}`;
-        // barFill.style.width = `${Math.max((item.cost_gbp / maxValue) * 100, 6)}%`;
-
         barFill.style.width = "0%";
 
         requestAnimationFrame(() => {
@@ -91,10 +110,8 @@ function renderCostUsageList(items, mode) {
         });
 
         barTrack.appendChild(barFill);
-
         row.appendChild(header);
         row.appendChild(barTrack);
-
         list.appendChild(row);
     }
 }
@@ -104,6 +121,14 @@ function syncRangeButtons(range) {
         "active",
         range === "today",
     );
+    document.getElementById("cost-usage-range-yesterday")?.classList.toggle(
+        "active",
+        range === "yesterday",
+    );
+    document.getElementById("cost-usage-range-month")?.classList.toggle(
+        "active",
+        range === "month",
+    );
     document.getElementById("cost-usage-range-current")?.classList.toggle(
         "active",
         range === "current",
@@ -111,7 +136,7 @@ function syncRangeButtons(range) {
 
     const subtitle = document.getElementById("cost-usage-subtitle");
     if (subtitle) {
-        subtitle.textContent = range === "current" ? "Current" : "Today";
+        subtitle.textContent = getRangeLabel(range);
     }
 }
 
@@ -131,7 +156,7 @@ export async function loadCostUsageModalPartial() {
     root.innerHTML = await response.text();
 }
 
-export async function loadCostUsage(range = "today") {
+export async function loadCostUsage(range = "current") {
     const data = await fetchDeviceCosts();
     const items = getCostItems(data, range);
 
@@ -139,7 +164,7 @@ export async function loadCostUsage(range = "today") {
     renderCostUsageList(items, range);
 }
 
-export async function openCostUsageModal(range = "today") {
+export async function openCostUsageModal(range = "current") {
     const modal = document.getElementById("cost-usage-modal");
     const backdrop = document.getElementById("cost-usage-backdrop");
 
@@ -167,7 +192,7 @@ export function setupCostUsageModal() {
 
     if (!openButton || !root) return;
 
-    let selectedRange = "today";
+    let selectedRange = "current";
 
     openButton.addEventListener("click", async () => {
         await openCostUsageModal(selectedRange);
@@ -188,6 +213,18 @@ export function setupCostUsageModal() {
 
         if (target.id === "cost-usage-range-today") {
             selectedRange = "today";
+            await loadCostUsage(selectedRange);
+            return;
+        }
+
+        if (target.id === "cost-usage-range-yesterday") {
+            selectedRange = "yesterday";
+            await loadCostUsage(selectedRange);
+            return;
+        }
+
+        if (target.id === "cost-usage-range-month") {
+            selectedRange = "month";
             await loadCostUsage(selectedRange);
             return;
         }

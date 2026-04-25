@@ -30,6 +30,7 @@ pub struct LiveState {
     pub washing_machine_power_w: Option<f64>,
     pub tumble_dryer_power_w: Option<f64>,
     pub device_costs: DeviceCostSummary,
+    pub electricity_cost_today_gbp: Option<f64>,
 }
 
 fn parse_top_cost_devices(attributes: &serde_json::Map<String, Value>) -> TopCostDevices {
@@ -128,15 +129,33 @@ pub fn extract_live_state(states: &[HaState]) -> LiveState {
         .map(|state| parse_top_cost_devices(&state.attributes))
         .unwrap_or_else(empty_top_cost_devices);
 
+    let yesterday_costs = states
+        .iter()
+        .find(|state| state.entity_id == "sensor.top_cost_devices_yesterday")
+        .map(|state| parse_top_cost_devices(&state.attributes))
+        .unwrap_or_else(empty_top_cost_devices);
+
+    let month_costs = states
+        .iter()
+        .find(|state| state.entity_id == "sensor.top_cost_devices_month")
+        .map(|state| parse_top_cost_devices(&state.attributes))
+        .unwrap_or_else(empty_top_cost_devices);
+
     LiveState {
         house_power_w: get_numeric_state(states, "sensor.total_power_being_used"),
         solar_generation_w: get_numeric_state(states, "sensor.solar_panel_led_sensor_power"),
         dishwasher_power_w: get_numeric_state(states, "sensor.dishwasher_power"),
         washing_machine_power_w: get_numeric_state(states, "sensor.washing_machine_power"),
         tumble_dryer_power_w: get_numeric_state(states, "sensor.tumble_dryer_power"),
+        electricity_cost_today_gbp: get_numeric_state(
+            states,
+            "sensor.octopus_energy_electricity_21e5386139_2334051220712_current_accumulative_cost",
+        ),
         device_costs: DeviceCostSummary {
             current: current_costs,
             today: today_costs,
+            yesterday: yesterday_costs,
+            month: month_costs,
         },
     }
 }

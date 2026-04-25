@@ -55,9 +55,12 @@ pub async fn load_dashboard_state(
                 dishwasher_power_w: None,
                 washing_machine_power_w: None,
                 tumble_dryer_power_w: None,
+                electricity_cost_today_gbp: None,
                 device_costs: DeviceCostSummary {
                     current: TopCostDevices { items: vec![] },
                     today: TopCostDevices { items: vec![] },
+                    yesterday: TopCostDevices { items: vec![] },
+                    month: TopCostDevices { items: vec![] },
                 },
             }
         }
@@ -128,7 +131,7 @@ pub fn build_usage_rotation_metrics(
         current_power_w,
         current_price_p_per_kwh,
         current_cost_per_hour_gbp,
-        cost_today_gbp: None,
+        cost_today_gbp: live.electricity_cost_today_gbp,
     }
 }
 

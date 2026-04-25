@@ -55,8 +55,10 @@ pub struct TopCostDevices {
     pub items: Vec<CostDeviceItem>,
 }
 
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, serde::Serialize)]
 pub struct DeviceCostSummary {
     pub current: TopCostDevices,
     pub today: TopCostDevices,
+    pub yesterday: TopCostDevices,
+    pub month: TopCostDevices,
 }

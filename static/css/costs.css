@@ -161,3 +161,19 @@
   color: var(--text);
   line-height: 1;
 }
+
+.cost-usage-bar-yesterday {
+  background: linear-gradient(
+    90deg,
+    rgba(59, 130, 246, 0.7),
+    #3b82f6
+  );
+}
+
+.cost-usage-bar-month {
+  background: linear-gradient(
+    90deg,
+    rgba(139, 92, 246, 0.7),
+    #8b5cf6
+  );
+}
