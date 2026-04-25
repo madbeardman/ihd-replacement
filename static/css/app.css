@@ -24,6 +24,9 @@
   --solar-green-dark: #15803d;
   --solar-green-mid: #22c55e;
   --solar-green-bright: #4ade80;
+
+  --main-gauge-width: 250px;
+  --main-gauge-height: 145px;
 }
 
 [hidden] {
@@ -73,7 +76,7 @@ body {
 .top-row {
   min-height: 0;
   display: grid;
-  grid-template-columns: 1.25fr 1.45fr 1.45fr 0.95fr;
+  grid-template-columns: 1.45fr 1.35fr 1.35fr 0.95fr;
   gap: 8px;
 }
 
@@ -397,79 +400,6 @@ body {
 .appliance-value.running {
   color: var(--cheap);
   font-weight: 800;
-}
-
-/* =========================
-   Gauge Components
-========================= */
-
-.gauge-wrap {
-  position: relative;
-  min-height: 0;
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
-  overflow: hidden;
-}
-
-.gauge-wrap-house,
-.gauge-wrap-solar {
-  height: 100%;
-  padding-top: 2px;
-}
-
-.gauge {
-  width: 100%;
-  height: 100%;
-  overflow: visible;
-}
-
-.gauge-house-large,
-.gauge-solar-large {
-  width: 100%;
-  height: 100%;
-  max-width: none;
-  max-height: none;
-}
-
-.gauge path {
-  fill: none;
-  stroke-linecap: round;
-}
-
-.gauge-track {
-  stroke: rgba(255, 255, 255, 0.12);
-  stroke-width: 14;
-}
-
-.gauge-track-inner {
-  stroke-width: 10;
-}
-
-.gauge-fill {
-  stroke-width: 14;
-  stroke: var(--normal);
-  transition:
-    stroke-dasharray 0.3s ease,
-    stroke 0.3s ease;
-}
-
-.gauge-fill-electric {
-  stroke: var(--normal);
-}
-
-.gauge-fill-gas {
-  stroke: #60a5fa;
-  stroke-width: 10;
-}
-
-.gauge-fill-solar {
-  stroke: var(--cheap);
-}
-
-.gauge-unavailable {
-  stroke: rgba(255, 255, 255, 0.2);
-  stroke-dasharray: 4 4;
 }
 
 .solar-export-icon {
