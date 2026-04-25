@@ -104,7 +104,7 @@ pub fn start_home_assistant_polling(state: AppState, ha_config: HaConfig) {
             let live = match fetch_all_states(&ha_config).await {
                 Ok(states) => extract_live_state(&states),
                 Err(err) => {
-                    eprintln!("[{now}] HA fetch failed: {err}");
+                    eprintln!("[{now}] HA fetch failed: {err:?}");
                     LiveState {
                         house_power_w: None,
                         solar_generation_w: None,

@@ -68,7 +68,7 @@ function renderUsageRotation() {
                 typeof state.latestUsageMetrics.current_power_w === "number"
                     ? `${Math.round(state.latestUsageMetrics.current_power_w)}W`
                     : "--",
-            subtext: "Electricity + Gas",
+            subtext: "Electricity",
         },
         {
             value:

@@ -48,7 +48,7 @@ pub async fn load_dashboard_state(
     let live = match fetch_all_states(ha_config).await {
         Ok(states) => extract_live_state(&states),
         Err(err) => {
-            eprintln!("Failed to fetch live HA state: {err}");
+            eprintln!("Failed to fetch live HA state: {err:?}");
             LiveState {
                 house_power_w: None,
                 solar_generation_w: None,
