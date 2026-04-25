@@ -262,6 +262,37 @@ function updateApplianceRow(appliances) {
     dryerEl.classList.toggle("running", appliances.tumble_dryer?.running === true);
 }
 
+function updateHouseUsagePanel(metrics, live) {
+    const loadEl = document.getElementById("usage-load-value");
+    const costEl = document.getElementById("usage-cost-value");
+    const rateEl = document.getElementById("usage-cost-rate");
+    const flowTextEl = document.getElementById("usage-flow-text");
+
+    if (!metrics || !loadEl || !costEl || !rateEl || !flowTextEl) return;
+
+    const watts = metrics.current_power_w ?? 0;
+    const costPerHour = metrics.current_cost_per_hour_gbp ?? 0;
+    const price = metrics.current_price_p_per_kwh ?? null;
+    const demand = live?.octopus_current_demand_w ?? 0;
+
+    // --- Main values ---
+    loadEl.textContent = `${Math.round(Math.abs(watts))}W`;
+    costEl.textContent = `${formatGbp(costPerHour)}/hr`;
+    rateEl.textContent =
+        typeof price === "number" ? `At ${formatPrice(price)}` : "--";
+
+    // --- Flow logic ---
+    if (demand < -5) {
+        flowTextEl.textContent = "Exporting to grid";
+    } else if (costPerHour === 0 && watts > 0) {
+        flowTextEl.textContent = "Covered by solar";
+    } else if (costPerHour > 0) {
+        flowTextEl.textContent = "Importing from grid";
+    } else {
+        flowTextEl.textContent = "Idle";
+    }
+}
+
 export async function loadDashboard() {
     if (state.dashboardRequestInFlight) return;
     state.dashboardRequestInFlight = true;
@@ -293,8 +324,7 @@ export async function loadDashboard() {
             output.textContent = JSON.stringify(data, null, 2);
         }
 
-        state.latestUsageMetrics = data.usage_metrics ?? null;
-        renderUsageRotation();
+        updateHouseUsagePanel(data.usage_metrics, data.live);
 
         updateCostsTodayPanel(data.usage_metrics);
 

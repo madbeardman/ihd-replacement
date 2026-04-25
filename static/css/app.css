@@ -76,7 +76,7 @@ body {
 .top-row {
   min-height: 0;
   display: grid;
-  grid-template-columns: 1.45fr 1.35fr 1.35fr 0.95fr;
+  grid-template-columns: 1.45fr 1.48fr 1.48fr 0.79fr;
   gap: 8px;
 }
 
@@ -308,9 +308,7 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: baseline;
-  gap: 8px;
-  margin-bottom: 4px;
-
+  margin-bottom: 2px;
   position: relative;
 }
 
