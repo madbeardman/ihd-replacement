@@ -57,6 +57,7 @@ pub async fn load_dashboard_state(
                 tumble_dryer_power_w: None,
                 electricity_cost_today_gbp: None,
                 octopus_current_demand_w: None,
+                gas_cost_today_gbp: None,
                 device_costs: DeviceCostSummary {
                     current: TopCostDevices { items: vec![] },
                     today: TopCostDevices { items: vec![] },
@@ -137,6 +138,7 @@ pub fn build_usage_rotation_metrics(
         current_price_p_per_kwh,
         current_cost_per_hour_gbp,
         cost_today_gbp: live.electricity_cost_today_gbp,
+        gas_cost_today_gbp: live.gas_cost_today_gbp,
     }
 }
 

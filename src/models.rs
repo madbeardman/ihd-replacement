@@ -16,6 +16,7 @@ pub struct UsageRotationMetrics {
     pub current_price_p_per_kwh: Option<f64>,
     pub current_cost_per_hour_gbp: Option<f64>,
     pub cost_today_gbp: Option<f64>,
+    pub gas_cost_today_gbp: Option<f64>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]

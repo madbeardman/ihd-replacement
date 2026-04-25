@@ -32,6 +32,7 @@ pub struct LiveState {
     pub device_costs: DeviceCostSummary,
     pub electricity_cost_today_gbp: Option<f64>,
     pub octopus_current_demand_w: Option<f64>,
+    pub gas_cost_today_gbp: Option<f64>,
 }
 
 fn parse_top_cost_devices(attributes: &serde_json::Map<String, Value>) -> TopCostDevices {
@@ -151,6 +152,10 @@ pub fn extract_live_state(states: &[HaState]) -> LiveState {
         electricity_cost_today_gbp: get_numeric_state(
             states,
             "sensor.octopus_energy_electricity_21e5386139_2334051220712_current_accumulative_cost",
+        ),
+        gas_cost_today_gbp: get_numeric_state(
+            states,
+            "sensor.octopus_energy_gas_e6e02565312021_2158072603_current_accumulative_cost",
         ),
         octopus_current_demand_w: get_numeric_state(
             states,
