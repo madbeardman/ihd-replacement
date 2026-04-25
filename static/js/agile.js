@@ -25,7 +25,7 @@ export function renderAgileChart(data) {
 
         for (const slot of data.slots) {
             const bar = document.createElement("div");
-            const heightPercent = (slot.value_inc_vat / maxPrice) * 95;
+            const heightPercent = (slot.value_inc_vat / maxPrice) * 85;
             const finalHeight = Math.max(slot.value_inc_vat > 0 ? minBarHeight : 0, heightPercent);
 
             bar.className = `agile-bar ${slot.band}${slot.is_now ? " now" : ""}`;
