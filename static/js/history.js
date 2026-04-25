@@ -140,32 +140,21 @@ function shiftSelectedMonth(months) {
     state.historySelectedDate = formatDateForApi(current);
 }
 
-function syncRangeButtons(range) {
-    document.getElementById("cost-usage-range-current")?.classList.toggle(
+function syncRangeButtons() {
+    document.getElementById("history-range-day")?.classList.toggle(
         "active",
-        range === "current"
+        state.historyRange === "day",
     );
 
-    document.getElementById("cost-usage-range-today")?.classList.toggle(
+    document.getElementById("history-range-week")?.classList.toggle(
         "active",
-        range === "today"
+        state.historyRange === "week",
     );
 
-    document.getElementById("cost-usage-range-yesterday")?.classList.toggle(
+    document.getElementById("history-range-month")?.classList.toggle(
         "active",
-        range === "yesterday"
+        state.historyRange === "month",
     );
-
-    document.getElementById("cost-usage-range-month")?.classList.toggle(
-        "active",
-        range === "month"
-    );
-
-    const subtitle = document.getElementById("cost-usage-subtitle");
-    if (subtitle) {
-        subtitle.textContent =
-            range.charAt(0).toUpperCase() + range.slice(1);
-    }
 }
 
 function syncMetricButtons() {
