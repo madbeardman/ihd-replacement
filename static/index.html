@@ -68,6 +68,52 @@
                     </div>
                 </article>
 
+                <article class="panel metric-panel costs-today-panel" id="costs-today-panel">
+                    <div class="panel-header-row">
+                        <h2 class="panel-title">Costs Today</h2>
+                    </div>
+
+                    <div class="panel-value" id="costs-today-total">--</div>
+
+                    <div class="costs-today-breakdown">
+                        <div class="costs-budget-row electricity">
+                            <div>
+                                <div class="costs-budget-label">⚡ Electricity</div>
+                                <div class="costs-budget-value" id="costs-today-electricity">--</div>
+                                <div class="costs-budget-caption" id="costs-electricity-budget">Budget £2.00</div>
+                            </div>
+
+                            <div class="costs-budget-gauge">
+                                <div class="costs-budget-percent" id="costs-electricity-percent">--</div>
+                                <svg viewBox="0 0 120 70" aria-hidden="true">
+                                    <path class="costs-budget-track" d="M 15 60 A 45 45 0 0 1 105 60"
+                                        pathLength="100" />
+                                    <path id="costs-electricity-gauge" class="costs-budget-fill electricity"
+                                        d="M 15 60 A 45 45 0 0 1 105 60" pathLength="100" stroke-dasharray="0 100" />
+                                </svg>
+                            </div>
+                        </div>
+
+                        <div class="costs-budget-row gas">
+                            <div>
+                                <div class="costs-budget-label">💧 Gas</div>
+                                <div class="costs-budget-value" id="costs-today-gas">--</div>
+                                <div class="costs-budget-caption" id="costs-gas-budget">Budget £5.00</div>
+                            </div>
+
+                            <div class="costs-budget-gauge">
+                                <div class="costs-budget-percent" id="costs-gas-percent">--</div>
+                                <svg viewBox="0 0 120 70" aria-hidden="true">
+                                    <path class="costs-budget-track" d="M 15 60 A 45 45 0 0 1 105 60"
+                                        pathLength="100" />
+                                    <path id="costs-gas-gauge" class="costs-budget-fill gas"
+                                        d="M 15 60 A 45 45 0 0 1 105 60" pathLength="100" stroke-dasharray="0 100" />
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                </article>
+
                 <article class="panel metric-panel" id="solar-panel">
                     <div class="panel-header-row">
                         <h2 class="panel-title">Solar</h2>

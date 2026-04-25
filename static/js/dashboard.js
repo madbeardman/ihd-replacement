@@ -8,6 +8,9 @@ import {
     isDevMode,
 } from "./utils.js";
 
+const DAILY_ELECTRICITY_BUDGET_GBP = 2.0;
+const DAILY_GAS_BUDGET_GBP = 5.0;
+
 function getHouseUsageColour(watts) {
     if (watts < 100) return "var(--usage-green-bright)";
     if (watts < 200) return "var(--usage-green-soft)";
@@ -64,6 +67,80 @@ function updateSolarExportIcon(octopusDemandW) {
     icon.toggleAttribute("hidden", !isExporting);
 }
 
+function updateBudgetGauge(gaugeId, percentId, cost, budget) {
+    const gauge = document.getElementById(gaugeId);
+    const percentEl = document.getElementById(percentId);
+
+    if (!gauge || !percentEl || typeof cost !== "number") return;
+
+    const ratio = budget > 0 ? cost / budget : 0;
+    const percentage = Math.min(Math.max(ratio * 100, 0), 100);
+
+    gauge.setAttribute(
+        "stroke-dasharray",
+        `${Math.max(percentage, cost > 0 ? 4 : 0)} 100`,
+    );
+
+    percentEl.textContent = `${Math.round(percentage)}%`;
+}
+
+function updateCostsTodayPanel(metrics) {
+    const totalEl = document.getElementById("costs-today-total");
+    const electricityEl = document.getElementById("costs-today-electricity");
+    const gasEl = document.getElementById("costs-today-gas");
+
+    const electricity =
+        typeof metrics?.cost_today_gbp === "number"
+            ? metrics.cost_today_gbp
+            : null;
+
+    const gas =
+        typeof metrics?.gas_cost_today_gbp === "number"
+            ? metrics.gas_cost_today_gbp
+            : null;
+
+    const total =
+        (typeof electricity === "number" ? electricity : 0) +
+        (typeof gas === "number" ? gas : 0);
+
+    if (totalEl) {
+        totalEl.textContent =
+            typeof electricity === "number" || typeof gas === "number"
+                ? formatGbp(total)
+                : "--";
+    }
+
+    if (electricityEl) {
+        electricityEl.textContent =
+            typeof electricity === "number" ? formatGbp(electricity) : "--";
+    }
+
+    if (gasEl) {
+        gasEl.textContent =
+            typeof gas === "number" ? formatGbp(gas) : "--";
+    }
+
+    updateBudgetGauge(
+        "costs-electricity-gauge",
+        "costs-electricity-percent",
+        electricity,
+        DAILY_ELECTRICITY_BUDGET_GBP,
+    );
+
+    updateBudgetGauge(
+        "costs-gas-gauge",
+        "costs-gas-percent",
+        gas,
+        DAILY_GAS_BUDGET_GBP,
+    );
+
+    document.getElementById("costs-electricity-budget").textContent =
+        `Budget ${formatGbp(DAILY_ELECTRICITY_BUDGET_GBP)}`;
+
+    document.getElementById("costs-gas-budget").textContent =
+        `Budget ${formatGbp(DAILY_GAS_BUDGET_GBP)}`;
+}
+
 function renderUsageRotation() {
     if (!state.latestUsageMetrics) return;
 
@@ -90,13 +167,6 @@ function renderUsageRotation() {
                     ? `At ${formatPrice(state.latestUsageMetrics.current_price_p_per_kwh)}`
                     : "Current cost",
         },
-        {
-            value:
-                typeof state.latestUsageMetrics.cost_today_gbp === "number"
-                    ? formatGbp(state.latestUsageMetrics.cost_today_gbp)
-                    : "--",
-            subtext: "Cost Today",
-        },
     ];
 
     const current = states[state.usageRotationIndex % states.length];
@@ -106,7 +176,7 @@ function renderUsageRotation() {
 
 export function advanceUsageRotation() {
     if (!state.latestUsageMetrics) return;
-    state.usageRotationIndex = (state.usageRotationIndex + 1) % 3;
+    state.usageRotationIndex = (state.usageRotationIndex + 1) % 2;
     renderUsageRotation();
 }
 
@@ -225,6 +295,8 @@ export async function loadDashboard() {
 
         state.latestUsageMetrics = data.usage_metrics ?? null;
         renderUsageRotation();
+
+        updateCostsTodayPanel(data.usage_metrics);
 
         const housePower =
             typeof data.usage_metrics?.current_power_w === "number"

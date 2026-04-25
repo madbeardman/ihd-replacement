@@ -73,8 +73,123 @@ body {
 .top-row {
   min-height: 0;
   display: grid;
-  grid-template-columns: 2.3fr 2fr 1fr;
+  grid-template-columns: 1.25fr 1.45fr 1.45fr 0.95fr;
   gap: 8px;
+}
+
+/* =========================
+   Costs Today Panel
+========================= */
+
+.costs-today-panel {
+  display: grid;
+  grid-template-rows: auto auto auto 1fr;
+  gap: 4px;
+}
+
+.costs-today-breakdown {
+  display: grid;
+  align-content: center;
+  margin-top: 4px;
+}
+
+.costs-today-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+  padding: 6px 0;
+  border-top: 1px solid var(--panel-soft-border);
+}
+
+.costs-today-label {
+  color: var(--muted);
+  font-size: 0.78rem;
+  line-height: 1;
+}
+
+.costs-today-value {
+  color: var(--text);
+  font-size: 0.9rem;
+  font-weight: 700;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.costs-budget-row {
+  display: grid;
+  grid-template-columns: 1fr 88px;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 0;
+  border-top: 1px solid var(--panel-soft-border);
+}
+
+.costs-budget-label {
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.costs-budget-value {
+  margin-top: 4px;
+  color: var(--text);
+  font-size: 1.2rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.costs-budget-caption {
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 0.68rem;
+  line-height: 1;
+}
+
+.costs-budget-gauge {
+  position: relative;
+  width: 88px;
+  height: 58px;
+}
+
+.costs-budget-gauge svg {
+  width: 88px;
+  height: 58px;
+  overflow: visible;
+}
+
+.costs-budget-track,
+.costs-budget-fill {
+  fill: none;
+  stroke-linecap: round;
+  stroke-width: 12;
+}
+
+.costs-budget-track {
+  stroke: rgba(255, 255, 255, 0.12);
+}
+
+.costs-budget-fill {
+  transition: stroke-dasharray 0.3s ease;
+}
+
+.costs-budget-fill.electricity {
+  stroke: #facc15;
+}
+
+.costs-budget-fill.gas {
+  stroke: #38bdf8;
+}
+
+.costs-budget-percent {
+  position: absolute;
+  left: 50%;
+  top: 68%;
+  transform: translate(-50%, -50%);
+  color: var(--text);
+  font-size: 0.78rem;
+  font-weight: 800;
 }
 
 /* =========================
@@ -217,8 +332,8 @@ body {
 }
 
 .panel-value {
-  font-size: 1.3rem;
-  font-weight: 700;
+  font-size: 1.5rem;
+  font-weight: 800;
   line-height: 1;
 }
 
