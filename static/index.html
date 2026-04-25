@@ -12,6 +12,8 @@
     <link rel="stylesheet" href="/static/css/costs.css" />
     <link rel="stylesheet" href="/static/css/gauge.css" />
     <link rel="stylesheet" href="/static/css/house-usage.css" />
+    <link rel="stylesheet" href="/static/css/battery.css" />
+    <link rel="stylesheet" href="/static/css/appliance.css" />
 </head>
 
 <body>
@@ -107,7 +109,7 @@
                     <div class="panel-value" id="usage-load-value">--</div>
 
                     <div class="usage-flow-state" id="usage-flow-state">
-                        <span class="usage-flow-icon">✓</span>
+                        <span class="usage-flow-icon" id="usage-flow-icon">✓</span>
                         <span id="usage-flow-text">Waiting for data</span>
                     </div>
 
@@ -145,39 +147,41 @@
 
                 <article class="panel metric-panel" id="battery-panel">
                     <div class="panel-header-row">
-                        <h2 class="panel-title">Battery</h2>
+                        <h2 class="panel-title">Battery State</h2>
                     </div>
 
                     <div class="panel-body battery-panel-body">
-                        <div class="panel-value panel-value-muted">--</div>
-                        <div class="panel-subtext">Not available yet</div>
+                        <div class="battery-top">
+                            <div class="battery-percentage" id="battery-percentage">--</div>
+                            <div class="battery-kwh" id="battery-kwh">--</div>
+                        </div>
 
-                        <div class="battery-widget">
-                            <div class="battery-bar">
-                                <div class="battery-fill" style="height: 65%"></div>
-                            </div>
-
-                            <div class="battery-meta">
-                                <div class="battery-value">65%</div>
-                                <div class="battery-caption">5.2kWh</div>
+                        <div class="battery-visual">
+                            <div class="battery-shell">
+                                <div class="battery-fill" id="battery-fill"></div>
                             </div>
                         </div>
+
+                        <div class="battery-status" id="battery-status">--</div>
                     </div>
                 </article>
             </section>
 
             <section class="panel appliance-row" id="appliance-row">
                 <div class="appliance-item">
+                    <div class="appliance-icon" aria-hidden="true">▣</div>
                     <span class="appliance-label">Washer</span>
                     <span class="appliance-value" id="appliance-washing-machine">--</span>
                 </div>
 
                 <div class="appliance-item">
+                    <div class="appliance-icon" aria-hidden="true">▤</div>
                     <span class="appliance-label">Dishwasher</span>
                     <span class="appliance-value" id="appliance-dishwasher">--</span>
                 </div>
 
                 <div class="appliance-item">
+                    <div class="appliance-icon" aria-hidden="true">▥</div>
                     <span class="appliance-label">Dryer</span>
                     <span class="appliance-value" id="appliance-tumble-dryer">--</span>
                 </div>

@@ -10,6 +10,7 @@ import {
 
 const DAILY_ELECTRICITY_BUDGET_GBP = 2.0;
 const DAILY_GAS_BUDGET_GBP = 5.0;
+const BATTERY_MAX_KWH = 4.0;
 
 function getHouseUsageColour(watts) {
     if (watts < 100) return "var(--usage-green-bright)";
@@ -186,6 +187,43 @@ export function updateClock() {
     clock.textContent = formatClock();
 }
 
+function updateBatteryPanel(battery) {
+    const percentEl = document.getElementById("battery-percentage");
+    const kwhEl = document.getElementById("battery-kwh");
+    const fillEl = document.getElementById("battery-fill");
+    const statusEl = document.getElementById("battery-status");
+
+    if (!percentEl || !kwhEl || !fillEl || !statusEl) return;
+
+    if (!battery || typeof battery.soc !== "number") {
+        percentEl.textContent = "--";
+        kwhEl.textContent = "--";
+        statusEl.textContent = "Not available";
+        fillEl.style.height = "0%";
+        return;
+    }
+
+    const soc = Math.round(battery.soc);
+    const kwh = (soc / 100) * BATTERY_MAX_KWH;
+
+    percentEl.textContent = `${soc}%`;
+    kwhEl.textContent = `${kwh.toFixed(1)}kWh`;
+
+    fillEl.style.height = `${soc}%`;
+
+    // status logic
+    if (battery.power_w > 50) {
+        statusEl.textContent = "Charging";
+        statusEl.style.color = "var(--cheap)";
+    } else if (battery.power_w < -50) {
+        statusEl.textContent = "Discharging";
+        statusEl.style.color = "var(--usage-orange)";
+    } else {
+        statusEl.textContent = "Idle";
+        statusEl.style.color = "var(--muted)";
+    }
+}
+
 function updateHouseUsageGauge(watts) {
     const gaugeArc = document.getElementById("usage-gauge-electric");
 
@@ -267,8 +305,10 @@ function updateHouseUsagePanel(metrics, live) {
     const costEl = document.getElementById("usage-cost-value");
     const rateEl = document.getElementById("usage-cost-rate");
     const flowTextEl = document.getElementById("usage-flow-text");
+    const flowIconEl = document.getElementById("usage-flow-icon");
+    const flowStateEl = document.getElementById("usage-flow-state");
 
-    if (!metrics || !loadEl || !costEl || !rateEl || !flowTextEl) return;
+    if (!metrics || !loadEl || !costEl || !rateEl || !flowTextEl || !flowIconEl || !flowStateEl) return;
 
     const watts = metrics.current_power_w ?? 0;
     const costPerHour = metrics.current_cost_per_hour_gbp ?? 0;
@@ -284,12 +324,20 @@ function updateHouseUsagePanel(metrics, live) {
     // --- Flow logic ---
     if (demand < -5) {
         flowTextEl.textContent = "Exporting to grid";
+        flowStateEl.className = "usage-flow-state usage-flow-export";
+        flowIconEl.textContent = "✓";
     } else if (costPerHour === 0 && watts > 0) {
         flowTextEl.textContent = "Covered by solar";
+        flowStateEl.className = "usage-flow-state usage-flow-export";
+        flowIconEl.textContent = "✓";
     } else if (costPerHour > 0) {
         flowTextEl.textContent = "Importing from grid";
+        flowStateEl.className = "usage-flow-state usage-flow-import";
+        flowIconEl.textContent = "⚡";
     } else {
         flowTextEl.textContent = "Idle";
+        flowStateEl.className = "usage-flow-state usage-flow-idle";
+        flowIconEl.textContent = "–";
     }
 }
 
@@ -325,8 +373,8 @@ export async function loadDashboard() {
         }
 
         updateHouseUsagePanel(data.usage_metrics, data.live);
-
         updateCostsTodayPanel(data.usage_metrics);
+        updateBatteryPanel(data.battery);
 
         const housePower =
             typeof data.usage_metrics?.current_power_w === "number"

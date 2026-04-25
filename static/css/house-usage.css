@@ -7,7 +7,7 @@
   align-items: flex-end;
   justify-content: center;
   margin-top: auto; 
-  transform: translateY(15px);
+  transform: translateY(10px);
   padding-top: 0;
 }
 
@@ -39,7 +39,7 @@
 
 .usage-cost-value {
   color: var(--text);
-  font-size: 1rem;
+  font-size: 0.9rem;
   font-weight: 800;
   line-height: 1;
   white-space: nowrap;
@@ -47,7 +47,7 @@
 
 .usage-cost-rate {
   color: var(--muted);
-  font-size: 1rem;
+  font-size: 0.9rem;
   line-height: 1;
   white-space: nowrap;
   margin-top: 2px;
@@ -61,6 +61,30 @@
   font-size: 0.78rem;
   font-weight: 800;
   line-height: 1;
+}
+
+.usage-flow-export .usage-flow-icon {
+  background: var(--cheap);
+}
+
+.usage-flow-import .usage-flow-icon {
+  background: var(--expensive);
+}
+
+.usage-flow-idle .usage-flow-icon {
+  background: var(--muted);
+}
+
+.usage-flow-export {
+  color: var(--cheap);
+}
+
+.usage-flow-import {
+  color: var(--expensive);
+}
+
+.usage-flow-idle {
+  color: var(--muted);
 }
 
 .usage-flow-icon {

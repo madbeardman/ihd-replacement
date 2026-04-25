@@ -76,7 +76,7 @@ body {
 .top-row {
   min-height: 0;
   display: grid;
-  grid-template-columns: 1.45fr 1.48fr 1.48fr 0.79fr;
+  grid-template-columns: 1.45fr 1.55fr 1.40fr 0.80fr;
   gap: 8px;
 }
 
@@ -355,51 +355,6 @@ body {
   gap: 4px;
 }
 
-/* =========================
-   Appliance Row
-========================= */
-
-.appliance-row {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  align-items: center;
-  gap: 10px;
-  padding: 6px 14px;
-  min-height: 0;
-}
-
-.appliance-item {
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
-  gap: 8px;
-}
-
-.appliance-label {
-  color: var(--muted);
-  font-size: 1.05rem;
-  line-height: 1;
-  white-space: nowrap;
-}
-
-.appliance-label::after {
-  content: ":";
-  margin-left: 2px;
-}
-
-.appliance-value {
-  color: var(--text);
-  font-size: 1rem;
-  font-weight: 700;
-  line-height: 1;
-  white-space: nowrap;
-}
-
-.appliance-value.running {
-  color: var(--cheap);
-  font-weight: 800;
-}
-
 .solar-export-icon {
   position: absolute;
   top: 0;
@@ -428,61 +383,6 @@ body {
     transform: scale(1.08);
     text-shadow: 0 0 18px rgba(250, 204, 21, 0.75);
   }
-}
-
-/* =========================
-   Battery Panel
-   Keep this section together for
-   future battery integration work
-========================= */
-
-.battery-panel-body {
-  grid-template-rows: auto auto 1fr;
-}
-
-.battery-widget {
-  min-height: 0;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  height: 100%;
-  padding-top: 2px;
-}
-
-.battery-bar {
-  width: 16px;
-  height: 100%;
-  min-height: 64px;
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 6px;
-  overflow: hidden;
-  border: 1px solid var(--panel-border);
-  display: flex;
-  align-items: end;
-}
-
-.battery-fill {
-  width: 100%;
-  background: var(--cheap);
-  transition: height 0.3s ease;
-}
-
-.battery-meta {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.battery-value {
-  font-size: 1rem;
-  font-weight: 700;
-  line-height: 1;
-}
-
-.battery-caption {
-  color: var(--muted);
-  font-size: 0.78rem;
-  line-height: 1;
 }
 
 /* =========================
