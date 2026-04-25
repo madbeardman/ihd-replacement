@@ -54,6 +54,16 @@ function setPollIndicatorError() {
     el.classList.add("error");
 }
 
+function updateSolarExportIcon(octopusDemandW) {
+    const icon = document.getElementById("solar-export-icon");
+    if (!icon) return;
+
+    const isExporting =
+        typeof octopusDemandW === "number" && octopusDemandW < -5;
+
+    icon.toggleAttribute("hidden", !isExporting);
+}
+
 function renderUsageRotation() {
     if (!state.latestUsageMetrics) return;
 
@@ -241,6 +251,8 @@ export async function loadDashboard() {
             updateSolarGauge(0);
         }
 
+        updateSolarExportIcon(data.live?.octopus_current_demand_w);
+
         renderAgileChart(data.agile);
         updateApplianceRow(data.appliances);
     } catch (error) {
@@ -251,6 +263,8 @@ export async function loadDashboard() {
         if (updatedEl) {
             updatedEl.textContent = devMode ? "Update failed" : "";
         }
+
+        updateSolarExportIcon(0);
 
         showPollIndicator();
         setPollIndicatorError();
