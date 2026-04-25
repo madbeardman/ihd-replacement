@@ -112,6 +112,7 @@ pub fn start_home_assistant_polling(state: AppState, ha_config: HaConfig) {
                         washing_machine_power_w: None,
                         tumble_dryer_power_w: None,
                         electricity_cost_today_gbp: None,
+                        octopus_current_demand_w: None,
                         device_costs: DeviceCostSummary {
                             current: TopCostDevices { items: vec![] },
                             today: TopCostDevices { items: vec![] },

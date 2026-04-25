@@ -13,7 +13,7 @@ function getHouseUsageColour(watts) {
     if (watts < 200) return "var(--usage-green-soft)";
     if (watts < 1000) return "var(--normal)";
     if (watts < 2000) return "var(--usage-orange)";
-    return "var(--usage-red)";
+    return "var(--usage-green-bright)";
 }
 
 function getSolarColor(_watts) {
@@ -113,17 +113,17 @@ function updateHouseUsageGauge(watts) {
 
     const maxWatts = 4000;
     const clampedWatts = clamp(watts, 0, maxWatts);
+    const colour = getHouseUsageColour(clampedWatts);
+    gaugeArc.style.opacity = "1";
 
-    const linearRatio = clampedWatts / maxWatts;
-    let percentage = Math.sqrt(linearRatio) * 100;
-
-    if (clampedWatts > 0) {
-        percentage = Math.max(percentage, 10);
-    } else {
-        percentage = 0;
+    if (clampedWatts <= 0) {
+        gaugeArc.setAttribute("stroke-dasharray", "1 100"); // Show a small sliver to indicate 0 usage
+        gaugeArc.style.stroke = "var(--usage-green-soft)";
+        return;
     }
 
-    const colour = getHouseUsageColour(clampedWatts);
+    const linearRatio = clampedWatts / maxWatts;
+    const percentage = Math.max(Math.sqrt(linearRatio) * 100, 10);
 
     gaugeArc.setAttribute("stroke-dasharray", `${percentage} 100`);
     gaugeArc.style.stroke = colour;
@@ -216,11 +216,12 @@ export async function loadDashboard() {
         state.latestUsageMetrics = data.usage_metrics ?? null;
         renderUsageRotation();
 
-        if (typeof data.live?.house_power_w === "number") {
-            updateHouseUsageGauge(Math.round(data.live.house_power_w));
-        } else {
-            updateHouseUsageGauge(0);
-        }
+        const housePower =
+            typeof data.usage_metrics?.current_power_w === "number"
+                ? data.usage_metrics.current_power_w
+                : 0;
+
+        updateHouseUsageGauge(Math.round(housePower));
 
         if (typeof data.live?.solar_generation_w === "number") {
             let solar = Math.round(data.live.solar_generation_w);

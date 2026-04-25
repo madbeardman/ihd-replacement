@@ -56,6 +56,7 @@ pub async fn load_dashboard_state(
                 washing_machine_power_w: None,
                 tumble_dryer_power_w: None,
                 electricity_cost_today_gbp: None,
+                octopus_current_demand_w: None,
                 device_costs: DeviceCostSummary {
                     current: TopCostDevices { items: vec![] },
                     today: TopCostDevices { items: vec![] },
@@ -116,7 +117,11 @@ pub fn build_usage_rotation_metrics(
     live: &LiveState,
     agile: &RollingWindow,
 ) -> UsageRotationMetrics {
-    let current_power_w = live.house_power_w;
+    let current_power_w = live
+        .octopus_current_demand_w
+        .or(live.house_power_w)
+        .map(|watts| watts.max(0.0));
+
     let current_price_p_per_kwh = agile.slots.first().map(|slot| slot.value_inc_vat);
 
     let current_cost_per_hour_gbp = match (current_power_w, current_price_p_per_kwh) {
