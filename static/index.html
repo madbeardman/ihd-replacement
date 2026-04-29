@@ -14,6 +14,7 @@
     <link rel="stylesheet" href="/static/css/house-usage.css" />
     <link rel="stylesheet" href="/static/css/battery.css" />
     <link rel="stylesheet" href="/static/css/appliance.css" />
+    <link rel="stylesheet" href="/static/css/solar.css" />
 </head>
 
 <body>
@@ -99,21 +100,10 @@
                 <article class="panel metric-panel usage-panel" id="usage-panel">
                     <div class="panel-header-row">
                         <h2 class="panel-title">House Usage</h2>
-
-                        <div class="usage-cost">
-                            <div class="usage-cost-value" id="usage-cost-value">--</div>
-                            <div class="usage-cost-rate" id="usage-cost-rate">--</div>
-                        </div>
                     </div>
 
                     <div class="panel-value" id="usage-load-value">--</div>
-
-                    <div class="usage-flow-state" id="usage-flow-state">
-                        <span class="usage-flow-icon" id="usage-flow-icon">✓</span>
-                        <span id="usage-flow-text">Waiting for data</span>
-                    </div>
-
-                    <!-- <div class="usage-flow-detail" id="usage-flow-detail">--</div> -->
+                    <div class="panel-subtext">Current Power Usage</div>
 
                     <div class="gauge-wrap gauge-wrap-house">
                         <svg class="gauge gauge-house-large" viewBox="0 0 320 180" aria-hidden="true">
@@ -121,6 +111,11 @@
                             <path id="usage-gauge-electric" class="gauge-fill gauge-fill-electric"
                                 d="M 30 150 A 130 130 0 0 1 290 150" pathLength="100" stroke-dasharray="0 100" />
                         </svg>
+
+                        <div class="usage-cost usage-cost-in-gauge">
+                            <div class="usage-cost-value" id="usage-cost-value">--</div>
+                            <div class="usage-cost-rate" id="usage-cost-rate">--</div>
+                        </div>
                     </div>
                 </article>
 
@@ -142,6 +137,10 @@
                             <path id="solar-gauge-fill" class="gauge-fill gauge-fill-solar"
                                 d="M 30 150 A 130 130 0 0 1 290 150" pathLength="100" stroke-dasharray="0 100" />
                         </svg>
+                        <div class="solar-export-amount" id="solar-export-amount" hidden>
+                            <div class="solar-export-label">Exporting</div>
+                            <div class="solar-export-value" id="solar-export-value">--</div>
+                        </div>
                     </div>
                 </article>
 

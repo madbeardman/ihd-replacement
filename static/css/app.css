@@ -76,7 +76,7 @@ body {
 .top-row {
   min-height: 0;
   display: grid;
-  grid-template-columns: 1.45fr 1.55fr 1.40fr 0.80fr;
+  grid-template-columns: 1.45fr 1.45fr 1.45fr 0.9fr;
   gap: 8px;
 }
 
@@ -234,8 +234,8 @@ body {
 }
 
 .icon-button {
-  width: 30px;
-  height: 30px;
+  width: 34px;
+  height: 34px;
   border: none;
   background: transparent;
   color: rgba(255, 255, 255, 0.62);
@@ -256,22 +256,37 @@ body {
 }
 
 .icon-svg {
-  width: 22px;
-  height: 22px;
-  transform: translateY(1px);
-  fill: none;
+  width: 26px;
+  height: 26px;
+  display: block;
   stroke: currentColor;
+  fill: none;
   stroke-width: 1.8;
   stroke-linecap: round;
   stroke-linejoin: round;
-  overflow: visible;
+  vector-effect: non-scaling-stroke; /* keeps stroke consistent */
+}
+
+#settings-button .icon-svg {
+  transform: scale(0.9);
+}
+
+#history-button .icon-svg {
+  transform: translateX(-1px);
 }
 
 .icon-currency {
-  font-size: 1.35rem;
-  font-weight: 600; /* slightly less bold than default */
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  font-size: 1.95rem;
+  font-weight: 700;
+  line-height: 1;
   opacity: 0.9;
-  transform: translateY(2px);
+  transform: translateY(1px);
 }
 
 .poll-indicator {

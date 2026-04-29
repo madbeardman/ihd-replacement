@@ -7,7 +7,7 @@
   align-items: flex-end;
   justify-content: center;
   margin-top: auto; 
-  transform: translateY(10px);
+  transform: translateY(20px);
   padding-top: 0;
 }
 
@@ -28,18 +28,23 @@
 }
 
 .usage-cost {
-  position: absolute;
-  top: 0;
-  right: 0;
-  text-align: right;
+  text-align: center;
   display: flex;
   flex-direction: column;
-  align-items: flex-end;
+  align-items: center;
+}
+
+.usage-cost-in-gauge {
+  position: absolute;
+  left: 50%;
+  top: 70%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
 }
 
 .usage-cost-value {
   color: var(--text);
-  font-size: 0.9rem;
+  font-size: 1rem;
   font-weight: 800;
   line-height: 1;
   white-space: nowrap;
@@ -47,10 +52,10 @@
 
 .usage-cost-rate {
   color: var(--muted);
-  font-size: 0.9rem;
+  font-size: 0.8rem;
   line-height: 1;
   white-space: nowrap;
-  margin-top: 2px;
+  margin-top: 4px;
 }
 
 .usage-flow-state {
