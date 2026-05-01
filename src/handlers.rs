@@ -14,6 +14,7 @@ use crate::history::{
     MonthHistoryResponse, WeekHistoryResponse, YesterdayHistoryResponse,
 };
 use crate::models::DashboardState;
+use crate::refresh::trigger_agile_refresh_if_needed;
 use crate::settings::{load_settings, save_settings, AppSettings};
 
 #[derive(Debug, Deserialize)]
@@ -27,13 +28,25 @@ pub struct UpdateSettingsRequest {
 }
 
 pub async fn get_dashboard(State(state): State<AppState>) -> Json<DashboardState> {
-    let dashboard = state.dashboard.read().await;
-    Json(dashboard.clone())
+    let dashboard = {
+        let guard = state.dashboard.read().await;
+        guard.clone()
+    };
+
+    trigger_agile_refresh_if_needed(state.clone(), dashboard.agile.slots.len()).await;
+
+    Json(dashboard)
 }
 
 pub async fn get_agile(State(state): State<AppState>) -> Json<RollingWindow> {
-    let dashboard = state.dashboard.read().await;
-    Json(dashboard.agile.clone())
+    let agile = {
+        let dashboard = state.dashboard.read().await;
+        dashboard.agile.clone()
+    };
+
+    trigger_agile_refresh_if_needed(state.clone(), agile.slots.len()).await;
+
+    Json(agile)
 }
 
 pub async fn get_settings() -> Result<Json<AppSettings>, (axum::http::StatusCode, String)> {

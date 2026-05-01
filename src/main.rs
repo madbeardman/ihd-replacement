@@ -9,6 +9,7 @@ use tower_http::cors::{Any, CorsLayer};
 use tower_http::services::ServeDir;
 
 use agile_fetcher::app_state::AppState;
+use agile_fetcher::app_state::RefreshState;
 use agile_fetcher::dashboard::{fetch_and_store_latest_agile, load_dashboard_state};
 use agile_fetcher::handlers::{
     get_agile, get_dashboard, get_history_day, get_history_month, get_history_week,
@@ -62,6 +63,10 @@ async fn main() {
         history_dir: history_dir.clone(),
         agile_dir: agile_dir.clone(),
         ha_config: ha_config.clone(),
+        refresh: Arc::new(RwLock::new(RefreshState {
+            agile_refresh_in_progress: false,
+            last_agile_refresh_attempt_at: None,
+        })),
     };
 
     start_home_assistant_polling(state.clone(), ha_config.clone());
