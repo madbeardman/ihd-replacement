@@ -12,6 +12,11 @@ const DAILY_ELECTRICITY_BUDGET_GBP = 2.0;
 const DAILY_GAS_BUDGET_GBP = 5.0;
 const BATTERY_MAX_KWH = 4.0;
 
+let lastGoodCostsToday = {
+    electricity: null,
+    gas: null,
+};
+
 function getHouseUsageColour(watts) {
     if (watts < 100) return "var(--usage-green-bright)";
     if (watts < 200) return "var(--usage-green-soft)";
@@ -113,38 +118,54 @@ function updateCostsTodayPanel(metrics) {
             ? metrics.gas_cost_today_gbp
             : null;
 
+    if (electricity !== null) {
+        lastGoodCostsToday.electricity = electricity;
+    }
+
+    if (gas !== null) {
+        lastGoodCostsToday.gas = gas;
+    }
+
+    const displayElectricity = electricity ?? lastGoodCostsToday.electricity;
+    const displayGas = gas ?? lastGoodCostsToday.gas;
+
+    const hasAnyValue =
+        typeof displayElectricity === "number" ||
+        typeof displayGas === "number";
+
     const total =
-        (typeof electricity === "number" ? electricity : 0) +
-        (typeof gas === "number" ? gas : 0);
+        (typeof displayElectricity === "number" ? displayElectricity : 0) +
+        (typeof displayGas === "number" ? displayGas : 0);
 
     if (totalEl) {
-        totalEl.textContent =
-            typeof electricity === "number" || typeof gas === "number"
-                ? formatGbp(total)
-                : "--";
+        totalEl.textContent = hasAnyValue ? formatGbp(total) : "--";
     }
 
     if (electricityEl) {
         electricityEl.textContent =
-            typeof electricity === "number" ? formatGbp(electricity) : "--";
+            typeof displayElectricity === "number"
+                ? formatGbp(displayElectricity)
+                : "--";
     }
 
     if (gasEl) {
         gasEl.textContent =
-            typeof gas === "number" ? formatGbp(gas) : "--";
+            typeof displayGas === "number"
+                ? formatGbp(displayGas)
+                : "--";
     }
 
     updateBudgetGauge(
         "costs-electricity-gauge",
         "costs-electricity-percent",
-        electricity,
+        displayElectricity,
         DAILY_ELECTRICITY_BUDGET_GBP,
     );
 
     updateBudgetGauge(
         "costs-gas-gauge",
         "costs-gas-percent",
-        gas,
+        displayGas,
         DAILY_GAS_BUDGET_GBP,
     );
 
